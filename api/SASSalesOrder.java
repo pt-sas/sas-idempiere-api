@@ -1,3 +1,4 @@
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -98,7 +99,7 @@ public class SASSalesOrder {
         // prefix: @AD_Org_ID<Value>@@AD_OrgTrx_ID<Name>@-OPT-@DateOrdered<yyMM>@-
         po.set_ValueNoCheck("AD_Org_ID", orgId);
         po.set_ValueNoCheck("AD_OrgTrx_ID", orgTrxId);
-        po.set_ValueNoCheck("DateOrdered", dateOrdered);
+        po.set_ValueNoCheck("DateOrdered", new Timestamp(dateOrdered.getTime()));
 
         return po;
     }
