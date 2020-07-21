@@ -195,10 +195,13 @@ public class SOInjector {
 
         GridWindowVO gWindowVO = GridWindowVO.create (Env.getCtx(), 1, SALES_ORDER_WINDOW_ID, 0); // TODO caution window ID!
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
+        
+        GridTab headerTab = gridWindow.getTab(0);
+        gridWindow.initTab(0);
 
         Set<String> tables = new HashSet<String>();
         List<GridTab> childs = new ArrayList<GridTab>();
-        for (int i = 0; i < gridWindow.getTabCount(); i++) {
+        for (int i = 1; i < gridWindow.getTabCount(); i++) {
             gridWindow.initTab(i);
             GridTab gTab = gridWindow.getTab(i);
 
@@ -213,15 +216,13 @@ public class SOInjector {
         try {
             InputStream m_file_istream = new FileInputStream(csvInputFilePath);
 
-            // TODO this index 0 is hardcoded, also based on assumption
-            File outFile = importer.fileImport(childs.get(0), childs, m_file_istream, charset, iMode);
+            File outFile = importer.fileImport(headerTab, childs, m_file_istream, charset, iMode);
             // TODO refactor the importer
 
             if (log.isLoggable(Level.INFO))
                 log.info(PLUGIN_PREFIX + "The output log filepath is: " + outFile.getAbsolutePath());
 
             // TODO if it's error, return false;
-
             return true;
         } catch (FileNotFoundException e) {
             log.severe(PLUGIN_PREFIX + "File not found!");
