@@ -15,13 +15,9 @@ import java.util.logging.Level;
 
 import org.adempiere.base.IGridTabImporter;
 import org.adempiere.impexp.GridTabCSVImporter;
-import org.adempiere.webui.AdempiereIdGenerator;
-import org.adempiere.webui.adwindow.ADWindow;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.IADTabbox;
-import org.adempiere.webui.adwindow.IADTabpanel;
-import org.adempiere.webui.component.DesktopTabpanel;
 import org.compiere.model.GridTab;
+import org.compiere.model.GridWindow;
+import org.compiere.model.GridWindowVO;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 
@@ -73,6 +69,29 @@ public class SOInjector {
     }
 
     public static boolean apiName(BizzySalesOrder bizzySo) {
+        Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
+        Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
+        Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);
+        Env.setContext(Env.getCtx(), "#AD_Role_ID", 1000110);
+        Env.setContext(Env.getCtx(), "#AD_Role_Name", "Role SLS Admin");
+        Env.setContext(Env.getCtx(), "#User_Level", " CO"); // Format 'SCO'
+        Env.setContext(Env.getCtx(), Env.AD_ORG_ID, 1000001);
+        Env.setContext(Env.getCtx(), Env.AD_ORG_NAME, "Sunter");
+        Env.setContext(Env.getCtx(), Env.M_WAREHOUSE_ID, 1000000);
+        Env.setContext(Env.getCtx(), "#Date", new java.sql.Timestamp(System.currentTimeMillis()));
+        Env.setContext(Env.getCtx(), "#ShowAcct", "N");
+        Env.setContext(Env.getCtx(), "#ShowTrl", "Y");
+        Env.setContext(Env.getCtx(), "#ShowAdvanced", "N");
+        Env.setContext(Env.getCtx(), "#YYYY", "Y");
+        Env.setContext(Env.getCtx(), "#StdPrecision", 2);
+        Env.setContext(Env.getCtx(), "$C_AcctSchema_ID", 1000001);
+        Env.setContext(Env.getCtx(), "$C_Currency_ID", 303);
+        Env.setContext(Env.getCtx(), "$HasAlias", "Y");
+        Env.setContext(Env.getCtx(), "#C_Country_ID", 100);
+        Env.setContext(Env.getCtx(), Env.LANGUAGE, "en_US");
+        Env.setContext(Env.getCtx(), "#AD_Client_ID", 1000001);
+        Env.setContext(Env.getCtx(), "#AD_Client_Name", "sas");
+
         SASSalesOrder sasSo = new SASSalesOrder(bizzySo);
 
         String csvInputFilepath = "/tmp/sas_generated_so.csv";
@@ -162,54 +181,38 @@ public class SOInjector {
     }
 
     private static boolean injectSalesOrder(String csvInputFilePath) {
-        final ADWindow adWindow = new ADWindow(Env.getCtx(), SALES_ORDER_WINDOW_ID);
-
-        final DesktopTabpanel tabPanel = new DesktopTabpanel();
-        String id = AdempiereIdGenerator.escapeId(adWindow.getTitle());
-        tabPanel.setId(id + "_" + adWindow.getADWindowContent().getWindowNo());
-
-        adWindow.createPart(tabPanel);
-
-        return importFile(adWindow.getADWindowContent(), csvInputFilePath);
+        return importFile(csvInputFilePath);
     }
 
-    private static boolean importFile(AbstractADWindowContent panel, String csvInputFilePath) {
+    private static boolean importFile(String csvInputFilePath) {
         IGridTabImporter importer = new GridTabCSVImporter();
 
         Charset charset = Charset.forName("UTF-8");
 
         String iMode = IMPORT_MODE_INSERT;
 
-        IADTabbox adTab = panel.getADTab();
-        int selected = adTab.getSelectedIndex(); // == 0
-        int tabLevel = panel.getActiveGridTab().getTabLevel(); // == 0
+        GridWindowVO gWindowVO = GridWindowVO.create (Env.getCtx(), 1, SALES_ORDER_WINDOW_ID, 0); // TODO caution window ID!
+        GridWindow gridWindow = new GridWindow(gWindowVO, true);
+
         Set<String> tables = new HashSet<String>();
         List<GridTab> childs = new ArrayList<GridTab>();
-        List<GridTab> includedList = panel.getActiveGridTab().getIncludedTabs(); // empty
-        for (GridTab included : includedList) {
-            String tableName = included.getTableName();
+        for (int i = 0; i < gridWindow.getTabCount(); i++) {
+            gridWindow.initTab(i);
+            GridTab gTab = gridWindow.getTab(i);
+
+            String tableName = gTab.getTableName();
             if (tables.contains(tableName))
                 continue;
+
             tables.add(tableName);
-            childs.add(included);
-        }
-        for (int i = selected + 1; i < adTab.getTabCount(); i++) {
-            IADTabpanel adTabPanel = adTab.getADTabpanel(i);
-            if (adTabPanel.getGridTab().isSortTab())
-                continue;
-            if (adTabPanel.getGridTab().getTabLevel() <= tabLevel)
-                break;
-            String tableName = adTabPanel.getGridTab().getTableName();
-            if (tables.contains(tableName))
-                continue;
-            tables.add(tableName);
-            childs.add(adTabPanel.getGridTab());
+            childs.add(gTab);
         }
 
         try {
             InputStream m_file_istream = new FileInputStream(csvInputFilePath);
 
-            File outFile = importer.fileImport(panel.getActiveGridTab(), childs, m_file_istream, charset, iMode);
+            // TODO this index 0 is hardcoded, also based on assumption
+            File outFile = importer.fileImport(childs.get(0), childs, m_file_istream, charset, iMode);
             // TODO refactor the importer
 
             if (log.isLoggable(Level.INFO))
