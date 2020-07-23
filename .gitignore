@@ -1,3 +1,4 @@
+*.class
 *.csv
 *.jar
 id.co.databiz.*

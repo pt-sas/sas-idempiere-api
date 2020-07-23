@@ -195,12 +195,17 @@ public class SOInjector {
 
         GridWindowVO gWindowVO = GridWindowVO.create (Env.getCtx(), 1, SALES_ORDER_WINDOW_ID, 0); // TODO caution window ID!
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
+        
+        gridWindow.initTab(0);
+        GridTab headerTab = gridWindow.getTab(0);
+        new GridTabHolder(headerTab);
 
         Set<String> tables = new HashSet<String>();
         List<GridTab> childs = new ArrayList<GridTab>();
-        for (int i = 0; i < gridWindow.getTabCount(); i++) {
+        for (int i = 1; i < gridWindow.getTabCount(); i++) {
             gridWindow.initTab(i);
             GridTab gTab = gridWindow.getTab(i);
+            new GridTabHolder(gTab);
 
             String tableName = gTab.getTableName();
             if (tables.contains(tableName))
@@ -213,19 +218,54 @@ public class SOInjector {
         try {
             InputStream m_file_istream = new FileInputStream(csvInputFilePath);
 
-            // TODO this index 0 is hardcoded, also based on assumption
-            File outFile = importer.fileImport(childs.get(0), childs, m_file_istream, charset, iMode);
+            File outFile = importer.fileImport(headerTab, childs, m_file_istream, charset, iMode);
             // TODO refactor the importer
 
             if (log.isLoggable(Level.INFO))
                 log.info(PLUGIN_PREFIX + "The output log filepath is: " + outFile.getAbsolutePath());
 
             // TODO if it's error, return false;
-
             return true;
         } catch (FileNotFoundException e) {
             log.severe(PLUGIN_PREFIX + "File not found!");
             return false;
+        }
+    }
+
+    class GridTabHolder implements DataStatusListener {
+        private GridTab gridTab;
+
+        public GridTabHolder(GridTab gTab) {
+            this.gridTab = gTab;
+            gridTab.addDataStatusListener(this);
+        }
+
+        public void dataStatusChanged(DataStatusEvent e) {
+            int col = e.getChangedColumn();
+            // TODO: add breakpoint in ADTabpanel::dataStatusChanged, learn which branch is used, which can be safely deleted
+
+            // Process Callout
+            GridField mField = gridTab.getField(col);
+            if (mField != null && (mField.getCallout().length() > 0
+                    || (Core.findCallout(gridTab.getTableName(), mField.getColumnName())).size() > 0
+                    || gridTab.hasDependants(mField.getColumnName()))) {
+                String msg = gridTab.processFieldChange(mField); // Dependencies & Callout
+                if (msg.length() > 0) {
+                    FDialog.error(windowNo, this, msg);
+                }
+
+                // Refresh the list on dependant fields
+                for (GridField dependentField : gridTab.getDependantFields(mField.getColumnName())) {
+                    // if the field has a lookup
+                    if (dependentField != null && dependentField.getLookup() instanceof MLookup) {
+                        MLookup mLookup = (MLookup) dependentField.getLookup();
+                        // if the lookup is dynamic (i.e. contains this columnName as variable)
+                        if (mLookup.getValidation().indexOf("@" + mField.getColumnName() + "@") != -1) {
+                            mLookup.refresh();
+                        }
+                    }
+                } // for all dependent fields
+            }
         }
     }
 }
