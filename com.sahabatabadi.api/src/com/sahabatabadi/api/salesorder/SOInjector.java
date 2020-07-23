@@ -15,11 +15,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.adempiere.base.Core;
 import org.adempiere.base.IGridTabImporter;
 import org.adempiere.impexp.GridTabCSVImporter;
+import org.compiere.model.DataStatusEvent;
+import org.compiere.model.DataStatusListener;
+import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridWindow;
 import org.compiere.model.GridWindowVO;
+import org.compiere.model.MLookup;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 
@@ -45,7 +50,7 @@ public class SOInjector {
         BizzySalesOrder bizzySo = new BizzySalesOrder();
 
         bizzySo.soff_code = 'A';
-        bizzySo.description = "OSGi Testing v1";
+        bizzySo.description = "OSGi Testing v2";
         bizzySo.dateOrdered = new Date(System.currentTimeMillis());
         bizzySo.bpHoldingNo = 3806;
         bizzySo.bpLocationName = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]";
@@ -56,16 +61,16 @@ public class SOInjector {
         bizzySo.orderLines[0].quantity = 20;
         bizzySo.orderLines[1] = new BizzySalesOrderLine();
         bizzySo.orderLines[1].productId = "AB0301440";
-        bizzySo.orderLines[1].quantity = 40;
+        bizzySo.orderLines[1].quantity = 30;
         bizzySo.orderLines[2] = new BizzySalesOrderLine();
         bizzySo.orderLines[2].productId = "AB0301430";
-        bizzySo.orderLines[2].quantity = 60;
+        bizzySo.orderLines[2].quantity = 40;
         bizzySo.orderLines[3] = new BizzySalesOrderLine();
         bizzySo.orderLines[3].productId = "AB0301420";
-        bizzySo.orderLines[3].quantity = 80;
+        bizzySo.orderLines[3].quantity = 50;
         bizzySo.orderLines[4] = new BizzySalesOrderLine();
         bizzySo.orderLines[4].productId = "AB0301635";
-        bizzySo.orderLines[4].quantity = 100;
+        bizzySo.orderLines[4].quantity = 60;
 
         return apiName(bizzySo);
     }
@@ -232,7 +237,7 @@ public class SOInjector {
         }
     }
 
-    class GridTabHolder implements DataStatusListener {
+    static class GridTabHolder implements DataStatusListener {
         private GridTab gridTab;
 
         public GridTabHolder(GridTab gTab) {
@@ -251,7 +256,7 @@ public class SOInjector {
                     || gridTab.hasDependants(mField.getColumnName()))) {
                 String msg = gridTab.processFieldChange(mField); // Dependencies & Callout
                 if (msg.length() > 0) {
-                    FDialog.error(windowNo, this, msg);
+                    System.err.println("Data status error: " + msg); // TODO rewrite
                 }
 
                 // Refresh the list on dependant fields
