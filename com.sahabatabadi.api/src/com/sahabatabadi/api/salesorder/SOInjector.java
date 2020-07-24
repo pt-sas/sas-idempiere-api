@@ -43,40 +43,20 @@ public class SOInjector {
     public static final int SALES_ORDER_WINDOW_ID = 143;
 
     public static final String PLUGIN_PREFIX = "[SAS SO Injector] ";
+    public static final String TEMP_CSV_FILEPATH = "/tmp/sas_generated_so.csv";
 
     protected static CLogger log = CLogger.getCLogger(SOInjector.class);
     
-    public static boolean dummyTrigger() {
-        BizzySalesOrder bizzySo = new BizzySalesOrder();
+    public static boolean apiName(BizzySalesOrder bizzySo) {
+        emulateLogin();
 
-        bizzySo.soff_code = 'A';
-        bizzySo.description = "OSGi Testing v2";
-        bizzySo.dateOrdered = new Date(System.currentTimeMillis());
-        bizzySo.bpHoldingNo = 3806;
-        bizzySo.bpLocationName = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]";
-
-        bizzySo.orderLines = new BizzySalesOrderLine[5];
-        bizzySo.orderLines[0] = new BizzySalesOrderLine();
-        bizzySo.orderLines[0].productId = "AB0301485";
-        bizzySo.orderLines[0].quantity = 20;
-        bizzySo.orderLines[1] = new BizzySalesOrderLine();
-        bizzySo.orderLines[1].productId = "AB0301440";
-        bizzySo.orderLines[1].quantity = 30;
-        bizzySo.orderLines[2] = new BizzySalesOrderLine();
-        bizzySo.orderLines[2].productId = "AB0301430";
-        bizzySo.orderLines[2].quantity = 40;
-        bizzySo.orderLines[3] = new BizzySalesOrderLine();
-        bizzySo.orderLines[3].productId = "AB0301420";
-        bizzySo.orderLines[3].quantity = 50;
-        bizzySo.orderLines[4] = new BizzySalesOrderLine();
-        bizzySo.orderLines[4].productId = "AB0301635";
-        bizzySo.orderLines[4].quantity = 60;
-
-        return apiName(bizzySo);
+        SASSalesOrder sasSo = new SASSalesOrder(bizzySo);
+        createCsv(sasSo, TEMP_CSV_FILEPATH);
+        return injectSalesOrder(TEMP_CSV_FILEPATH);
     }
 
-    public static boolean apiName(BizzySalesOrder bizzySo) {
-    	Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
+    private static void emulateLogin() {
+        Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
         Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
         Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);
         Env.setContext(Env.getCtx(), "#AD_Role_ID", 1000110);
@@ -98,12 +78,6 @@ public class SOInjector {
         Env.setContext(Env.getCtx(), Env.LANGUAGE, "en_US");
         Env.setContext(Env.getCtx(), "#AD_Client_ID", 1000001);
         Env.setContext(Env.getCtx(), "#AD_Client_Name", "sas");
-    	
-        SASSalesOrder sasSo = new SASSalesOrder(bizzySo);
-
-        String csvInputFilepath = "/tmp/sas_generated_so.csv";
-        createCsv(sasSo, csvInputFilepath);
-        return injectSalesOrder(csvInputFilepath);
     }
 
     private static void createCsv(SASSalesOrder sasSo, String filepath) {
@@ -188,10 +162,6 @@ public class SOInjector {
     }
 
     private static boolean injectSalesOrder(String csvInputFilePath) {
-        return importFile(csvInputFilePath);
-    }
-
-    private static boolean importFile(String csvInputFilePath) {
         IGridTabImporter importer = new GridTabCSVImporter();
 
         Charset charset = Charset.forName("UTF-8");
@@ -199,10 +169,10 @@ public class SOInjector {
         String iMode = IMPORT_MODE_INSERT;
 
         final int windowNo = 1; // TODO caution window ID!
-        GridWindowVO gWindowVO = GridWindowVO.create (Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0); 
+        GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0);
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
         Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", gridWindow.isSOTrx());
-        
+
         gridWindow.initTab(0);
         GridTab headerTab = gridWindow.getTab(0);
         new GridTabHolder(headerTab);
@@ -274,5 +244,34 @@ public class SOInjector {
                 } // for all dependent fields
             }
         }
+    }
+
+    public static BizzySalesOrder createTestBizzySo() {
+        BizzySalesOrder bizzySo = new BizzySalesOrder();
+
+        bizzySo.soff_code = 'A';
+        bizzySo.description = "OSGi Testing v2";
+        bizzySo.dateOrdered = new Date(System.currentTimeMillis());
+        bizzySo.bpHoldingNo = 3806;
+        bizzySo.bpLocationName = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]";
+
+        bizzySo.orderLines = new BizzySalesOrderLine[5];
+        bizzySo.orderLines[0] = new BizzySalesOrderLine();
+        bizzySo.orderLines[0].productId = "AB0301485";
+        bizzySo.orderLines[0].quantity = 20;
+        bizzySo.orderLines[1] = new BizzySalesOrderLine();
+        bizzySo.orderLines[1].productId = "AB0301440";
+        bizzySo.orderLines[1].quantity = 30;
+        bizzySo.orderLines[2] = new BizzySalesOrderLine();
+        bizzySo.orderLines[2].productId = "AB0301430";
+        bizzySo.orderLines[2].quantity = 40;
+        bizzySo.orderLines[3] = new BizzySalesOrderLine();
+        bizzySo.orderLines[3].productId = "AB0301420";
+        bizzySo.orderLines[3].quantity = 50;
+        bizzySo.orderLines[4] = new BizzySalesOrderLine();
+        bizzySo.orderLines[4].productId = "AB0301635";
+        bizzySo.orderLines[4].quantity = 60;
+
+        return bizzySo;
     }
 }
