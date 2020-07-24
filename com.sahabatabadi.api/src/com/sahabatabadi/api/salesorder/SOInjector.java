@@ -168,7 +168,7 @@ public class SOInjector {
 
         String iMode = IMPORT_MODE_INSERT;
 
-        final int windowNo = 1; // TODO caution window ID!
+        final int windowNo = 999; // TODO caution window number!
         GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0);
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
         Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", gridWindow.isSOTrx());
