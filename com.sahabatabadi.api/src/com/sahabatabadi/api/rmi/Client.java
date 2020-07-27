@@ -16,7 +16,7 @@ public class Client {
 
         try {
             Registry registry = LocateRegistry.getRegistry(host, port);
-            IRemoteApi stub = (IRemoteApi) registry.lookup("SASiDempiereRemoteApi");
+            IRemoteApi stub = (IRemoteApi) registry.lookup(IRemoteApi.BINDING_NAME);
             boolean response = stub.injectSo(createTestBizzySo()); // TODO
             System.out.println("response: " + response);
         } catch (Exception e) {

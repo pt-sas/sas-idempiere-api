@@ -8,6 +8,7 @@ import java.rmi.server.UnicastRemoteObject;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import com.sahabatabadi.api.rmi.IRemoteApi;
 import com.sahabatabadi.api.rmi.RemoteApi;
 
 public class Activator implements BundleActivator {
@@ -52,7 +53,7 @@ public class Activator implements BundleActivator {
 
             // Bind the remote object's stub in the registry
             registry = LocateRegistry.createRegistry(1579);
-            registry.rebind("SASiDempiereRemoteApi", stub);
+            registry.rebind(IRemoteApi.BINDING_NAME, stub);
 
             System.err.println("Server ready");
         } catch (Exception e) {
@@ -64,7 +65,7 @@ public class Activator implements BundleActivator {
     private static void stopRmiServer() {
         System.out.println("Stopping server");
         try { /* TODO ensure this method doesn't crash */
-            registry.unbind("SASiDempiereRemoteApi");
+            registry.unbind(IRemoteApi.BINDING_NAME);
             while (UnicastRemoteObject.unexportObject(registry, false)) {
                 Thread.sleep(500);
             }
