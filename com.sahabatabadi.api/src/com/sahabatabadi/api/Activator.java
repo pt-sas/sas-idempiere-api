@@ -13,6 +13,7 @@ import com.sahabatabadi.api.rmi.RemoteApi;
 public class Activator implements BundleActivator {
 
 	private static BundleContext context;
+	private static Remote stub;
 
 	static BundleContext getContext() {
 		return context;
@@ -34,7 +35,7 @@ public class Activator implements BundleActivator {
 		
 		try {
             RemoteApi server = new RemoteApi();
-            Remote stub = (Remote) UnicastRemoteObject.exportObject(server, 0);
+            stub = (Remote) UnicastRemoteObject.exportObject(server, 0);
 
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.createRegistry(1579);
