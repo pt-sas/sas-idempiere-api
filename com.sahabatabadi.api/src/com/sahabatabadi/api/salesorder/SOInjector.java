@@ -42,7 +42,7 @@ public class SOInjector {
     public static final int SALES_ORDER_MENU_ID = 129;
     public static final int SALES_ORDER_WINDOW_ID = 143;
 
-    public static final String PLUGIN_PREFIX = "[SAS SO Injector] ";
+    public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
     public static final String TEMP_CSV_FILEPATH = "/tmp/sas_generated_so.csv";
 
     protected static CLogger log = CLogger.getCLogger(SOInjector.class);
@@ -52,7 +52,7 @@ public class SOInjector {
 
         SASSalesOrder sasSo = new SASSalesOrder(bizzySo);
         createCsv(sasSo, TEMP_CSV_FILEPATH);
-        return injectSalesOrder(TEMP_CSV_FILEPATH);
+        return injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
     }
 
     private static void emulateLogin() {
@@ -161,7 +161,7 @@ public class SOInjector {
         }
     }
 
-    private static boolean injectSalesOrder(String csvInputFilePath) {
+    private static boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
         IGridTabImporter importer = new GridTabCSVImporter();
 
         Charset charset = Charset.forName("UTF-8");
@@ -198,8 +198,8 @@ public class SOInjector {
             File outFile = importer.fileImport(headerTab, childs, m_file_istream, charset, iMode);
             // TODO refactor the importer
 
-            if (log.isLoggable(Level.INFO))
-                log.info(PLUGIN_PREFIX + "The output log filepath is: " + outFile.getAbsolutePath());
+            if (log.isLoggable(Level.INFO)) 
+                log.info(PLUGIN_PREFIX + "The document number is: " + documentNo);
 
             // TODO if it's error, return false;
             return true;
@@ -219,8 +219,6 @@ public class SOInjector {
 
         public void dataStatusChanged(DataStatusEvent e) {
             int col = e.getChangedColumn();
-            // TODO: add breakpoint in ADTabpanel::dataStatusChanged, learn which branch is used, which can be safely deleted
-
             // Process Callout
             GridField mField = gridTab.getField(col);
             if (mField != null && (mField.getCallout().length() > 0
@@ -228,7 +226,8 @@ public class SOInjector {
                     || gridTab.hasDependants(mField.getColumnName()))) {
                 String msg = gridTab.processFieldChange(mField); // Dependencies & Callout
                 if (msg.length() > 0) {
-                    System.err.println("Data status error: " + msg); // TODO rewrite
+                    if (log.isLoggable(Level.WARNING))
+                        log.warning(PLUGIN_PREFIX + "Data status error: " + msg);
                 }
 
                 // Refresh the list on dependant fields
