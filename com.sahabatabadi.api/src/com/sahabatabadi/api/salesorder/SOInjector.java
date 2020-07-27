@@ -56,6 +56,7 @@ public class SOInjector {
     }
 
     private static void emulateLogin() {
+        // TODO work in progress
         Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
         Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
         Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);
@@ -81,6 +82,7 @@ public class SOInjector {
     }
 
     private static void createCsv(SASSalesOrder sasSo, String filepath) {
+        // TODO add Invoice partner & BP contacts headers
         final String[] header = new String[] {
             "AD_Org_ID[Name]", 
             "DocumentNo/K", 
@@ -162,6 +164,7 @@ public class SOInjector {
     }
 
     private static boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
+        /* org.adempiere.webui.panel.action.FileImportAction::importFile() */
         IGridTabImporter importer = new GridTabCSVImporter();
 
         Charset charset = Charset.forName("UTF-8");
@@ -180,6 +183,7 @@ public class SOInjector {
         Set<String> tables = new HashSet<String>();
         List<GridTab> childs = new ArrayList<GridTab>();
         for (int i = 1; i < gridWindow.getTabCount(); i++) {
+            /* org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int) */
             gridWindow.initTab(i);
             GridTab gTab = gridWindow.getTab(i);
             new GridTabHolder(gTab);
@@ -218,6 +222,7 @@ public class SOInjector {
         }
 
         public void dataStatusChanged(DataStatusEvent e) {
+            /* org.adempiere.webui.adwindow.ADTabpanel::dataStatusChanged(DataStatusEvent) */
             int col = e.getChangedColumn();
             // Process Callout
             GridField mField = gridTab.getField(col);
