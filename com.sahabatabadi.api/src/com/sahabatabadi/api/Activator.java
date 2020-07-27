@@ -11,29 +11,30 @@ import org.osgi.framework.BundleContext;
 import com.sahabatabadi.api.rmi.RemoteApi;
 
 public class Activator implements BundleActivator {
+    private static BundleContext context;
+    private static Remote stub;
 
-	private static BundleContext context;
-	private static Remote stub;
+    static BundleContext getContext() {
+        return context;
+    }
 
-	static BundleContext getContext() {
-		return context;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+     */
+    public void start(BundleContext bundleContext) throws Exception {
+        System.out.println("SAS SO Injector is starting");
+        Activator.context = bundleContext;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	public void start(BundleContext bundleContext) throws Exception {
-		System.out.println("SAS SO Injector is starting");
-		Activator.context = bundleContext;
-		
-		startRmiServer();
-	}
-	
-	private static void startRmiServer() {
-		System.out.println("Starting RMI Server");
-		
-		try {
+        startRmiServer();
+    }
+
+    private static void startRmiServer() {
+        System.out.println("Starting RMI Server");
+
+        try {
             RemoteApi server = new RemoteApi();
             stub = (Remote) UnicastRemoteObject.exportObject(server, 0);
 
@@ -46,14 +47,16 @@ public class Activator implements BundleActivator {
             System.err.println("Server exception: " + e.toString());
             e.printStackTrace();
         }
-	}
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	public void stop(BundleContext bundleContext) throws Exception {
-		System.out.println("SAS SO Injector is stopping");
-		Activator.context = null;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    public void stop(BundleContext bundleContext) throws Exception {
+        System.out.println("SAS SO Injector is stopping");
+        Activator.context = null;
+    }
 }
