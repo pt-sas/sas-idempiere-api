@@ -1,5 +1,6 @@
 package com.sahabatabadi.api;
 
+import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -50,6 +51,8 @@ public class Activator implements BundleActivator {
         if (log.isLoggable(Level.INFO))
             log.info("SAS SO Injector is stopping");
         Activator.context = null;
+        
+        stopRmiServer();
     }
 
     private static void startRmiServer() {
@@ -79,7 +82,7 @@ public class Activator implements BundleActivator {
             log.info("Stopping RMI server");
         try {
             registry.unbind(IRemoteApi.BINDING_NAME);
-        } catch (RemoteException e) {
+        } catch (RemoteException | NotBoundException e) {
             if (log.isLoggable(Level.WARNING)) {
                 log.warning("Server exception: " + e.toString());
                 e.printStackTrace();
