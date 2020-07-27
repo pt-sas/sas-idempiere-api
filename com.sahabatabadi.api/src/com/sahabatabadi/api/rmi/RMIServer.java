@@ -10,13 +10,13 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import org.compiere.util.CLogger;
 
-protected static CLogger log = CLogger.getCLogger(RMIServer.class);
-
 public class RMIServer {
     public static final int RMI_REGISTRY_PORT = 1579;
     
     private Remote stub;
     private Registry registry;
+
+    protected static CLogger log = CLogger.getCLogger(RMIServer.class);
 
     public void startRmiServer() {
         if (log.isLoggable(Level.INFO))
