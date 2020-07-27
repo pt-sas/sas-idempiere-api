@@ -1,9 +1,13 @@
 package com.sahabatabadi.api;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+
+import java.util.logging.Level;
+import org.compiere.util.CLogger;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -16,6 +20,8 @@ public class Activator implements BundleActivator {
     private static Remote stub;
     private static Registry registry;
 
+    protected static CLogger log = CLogger.getCLogger(Activator.class);
+
     static BundleContext getContext() {
         return context;
     }
@@ -27,7 +33,8 @@ public class Activator implements BundleActivator {
      * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
      */
     public void start(BundleContext bundleContext) throws Exception {
-        System.out.println("SAS SO Injector is starting");
+        if (log.isLoggable(Level.INFO))
+            log.info("SAS SO Injector is starting");
         Activator.context = bundleContext;
 
         startRmiServer();
@@ -40,12 +47,14 @@ public class Activator implements BundleActivator {
      * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
      */
     public void stop(BundleContext bundleContext) throws Exception {
-        System.out.println("SAS SO Injector is stopping");
+        if (log.isLoggable(Level.INFO))
+            log.info("SAS SO Injector is stopping");
         Activator.context = null;
     }
 
     private static void startRmiServer() {
-        System.out.println("Starting RMI Server");
+        if (log.isLoggable(Level.INFO))
+            log.info("Starting RMI Server");
 
         try {
             RemoteApi server = new RemoteApi();
@@ -55,17 +64,23 @@ public class Activator implements BundleActivator {
             registry = LocateRegistry.createRegistry(1579);
             registry.rebind(IRemoteApi.BINDING_NAME, stub);
 
-            System.err.println("Server ready");
-        } catch (Exception e) {
-            System.err.println("Server exception: " + e.toString());
-            e.printStackTrace();
+            if (log.isLoggable(Level.INFO))
+                log.info("Server ready");
+        } catch (RemoteException e) {
+            if (log.isLoggable(Level.WARNING)) {
+                log.warning("Server exception: " + e.toString());
+                e.printStackTrace();
+            }
         }
     }
 
     private static void stopRmiServer() {
-        System.out.println("Stopping server");
+        if (log.isLoggable(Level.INFO))
+            log.info("Stopping server");
         try { /* TODO ensure this method doesn't crash */
             registry.unbind(IRemoteApi.BINDING_NAME);
+
+            /* TODO possible starvation issue */
             while (UnicastRemoteObject.unexportObject(registry, false)) {
                 Thread.sleep(500);
             }
@@ -73,8 +88,11 @@ public class Activator implements BundleActivator {
             while (UnicastRemoteObject.unexportObject(stub, false)) {
                 Thread.sleep(500);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (RemoteException e) {
+            if (log.isLoggable(Level.WARNING)) {
+                log.warning("Server exception: " + e.toString());
+                e.printStackTrace();
+            }
         }
     }
 }
