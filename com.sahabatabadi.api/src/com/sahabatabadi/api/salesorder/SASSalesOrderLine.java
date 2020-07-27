@@ -20,7 +20,7 @@ public class SASSalesOrderLine {
         /* parsing values from Bizzy SO Line */
         this.header = header;
         this.productId = orderLine.productId;
-        this.quantity = orderLine.quantity;
+        this.quantity = orderLine.quantity; // TODO ask about natura (- 1)
 
         /* calculating values */
         this.lineNo = header.getNextLineNumber();
