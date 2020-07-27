@@ -26,7 +26,7 @@ public class Activator implements BundleActivator {
      */
     public void start(BundleContext bundleContext) throws Exception {
         if (log.isLoggable(Level.INFO))
-            log.info("SAS SO Injector is starting");
+            log.info("SAS iDempiere API is starting");
         Activator.context = bundleContext;
 
         if (rmiServer == null) {
@@ -44,7 +44,7 @@ public class Activator implements BundleActivator {
      */
     public void stop(BundleContext bundleContext) throws Exception {
         if (log.isLoggable(Level.INFO))
-            log.info("SAS SO Injector is stopping");
+            log.info("SAS iDempiere API is stopping");
         Activator.context = null;
         
         if (rmiServer != null) {
