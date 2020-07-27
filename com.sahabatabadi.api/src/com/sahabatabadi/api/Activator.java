@@ -76,18 +76,9 @@ public class Activator implements BundleActivator {
 
     private static void stopRmiServer() {
         if (log.isLoggable(Level.INFO))
-            log.info("Stopping server");
-        try { /* TODO ensure this method doesn't crash */
+            log.info("Stopping RMI server");
+        try {
             registry.unbind(IRemoteApi.BINDING_NAME);
-
-            /* TODO possible starvation issue */
-            while (UnicastRemoteObject.unexportObject(registry, false)) {
-                Thread.sleep(500);
-            }
-
-            while (UnicastRemoteObject.unexportObject(stub, false)) {
-                Thread.sleep(500);
-            }
         } catch (RemoteException e) {
             if (log.isLoggable(Level.WARNING)) {
                 log.warning("Server exception: " + e.toString());
