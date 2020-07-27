@@ -1,25 +1,16 @@
 package com.sahabatabadi.api;
 
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-
 import java.util.logging.Level;
 import org.compiere.util.CLogger;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import com.sahabatabadi.api.rmi.IRemoteApi;
-import com.sahabatabadi.api.rmi.RemoteApi;
+import com.sahabatabadi.api.rmi.RMIServer;
 
 public class Activator implements BundleActivator {
     private static BundleContext context;
-    private static Remote stub;
-    private static Registry registry;
+    private static RMIServer rmiServer;
 
     protected static CLogger log = CLogger.getCLogger(Activator.class);
 
@@ -38,7 +29,11 @@ public class Activator implements BundleActivator {
             log.info("SAS SO Injector is starting");
         Activator.context = bundleContext;
 
-        startRmiServer();
+        if (rmiServer == null) {
+            rmiServer = new RMIServer();
+        }
+
+        rmiServer.startRmiServer();
     }
 
     /*
@@ -52,41 +47,9 @@ public class Activator implements BundleActivator {
             log.info("SAS SO Injector is stopping");
         Activator.context = null;
         
-        stopRmiServer();
-    }
-
-    private static void startRmiServer() {
-        if (log.isLoggable(Level.INFO))
-            log.info("Starting RMI Server");
-
-        try {
-            RemoteApi server = new RemoteApi();
-            stub = (Remote) UnicastRemoteObject.exportObject(server, 0);
-
-            // Bind the remote object's stub in the registry
-            registry = LocateRegistry.createRegistry(1579);
-            registry.rebind(IRemoteApi.BINDING_NAME, stub);
-
-            if (log.isLoggable(Level.INFO))
-                log.info("Server ready");
-        } catch (RemoteException e) {
-            if (log.isLoggable(Level.WARNING)) {
-                log.warning("Server exception: " + e.toString());
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static void stopRmiServer() {
-        if (log.isLoggable(Level.INFO))
-            log.info("Stopping RMI server");
-        try {
-            registry.unbind(IRemoteApi.BINDING_NAME);
-        } catch (RemoteException | NotBoundException e) {
-            if (log.isLoggable(Level.WARNING)) {
-                log.warning("Server exception: " + e.toString());
-                e.printStackTrace();
-            }
+        if (rmiServer != null) {
+            rmiServer.stopRmiServer();
+            rmiServer = null;
         }
     }
 }
