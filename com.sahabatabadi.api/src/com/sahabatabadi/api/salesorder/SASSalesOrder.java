@@ -22,11 +22,11 @@ public class SASSalesOrder {
     public String dateOrdered;          // DateOrdered: 2020-01-02
     public String datePromised;         // DatePromised: 2020-01-02
     public String bpHoldingId;          // C_BPartner_ID[Value]
-    // public String invoiceBpHoldingId;   // Bill_BPartner_ID[Value]
+    public String invoiceBpHoldingId;   // Bill_BPartner_ID[Value]
     public String bpLocation;           // C_BPartner_Location_[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
-    // public String invoiceBpLocation;    // Bill_Location_ID[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
-    // public String bpContact;            // AD_User_ID[Name]: Yudi Bunadi Tjhie
-    // public String invoiceBpContact;     // Bill_User_ID[Name]: Yudi Bunadi Tjhie
+    public String invoiceBpLocation;    // Bill_Location_ID[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
+    public String bpContact;            // AD_User_ID[Name]: Yudi Bunadi Tjhie
+    public String invoiceBpContact;     // Bill_User_ID[Name]: Yudi Bunadi Tjhie
     // public char deliveryRule;           // DeliveryRule
     // public char priorityRule;           // PriorityRule
     public String warehouse;            // M_Warehouse_ID[Value]: Sunter F1-2
