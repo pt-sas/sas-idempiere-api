@@ -18,7 +18,7 @@ public class Client {
         try {
             Registry registry = LocateRegistry.getRegistry(host, port);
             IRemoteApi stub = (IRemoteApi) registry.lookup(IRemoteApi.BINDING_NAME);
-            boolean response = stub.injectSo(createTestBizzySo()); // TODO
+            boolean response = stub.injectSo(createTestBizzySo());
             System.out.println("response: " + response);
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
