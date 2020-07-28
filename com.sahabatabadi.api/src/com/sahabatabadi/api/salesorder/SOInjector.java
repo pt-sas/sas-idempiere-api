@@ -164,7 +164,7 @@ public class SOInjector {
     }
 
     private static boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
-        /* org.adempiere.webui.panel.action.FileImportAction::importFile() */
+        // org.adempiere.webui.panel.action.FileImportAction::importFile()
         IGridTabImporter importer = new GridTabCSVImporter();
 
         Charset charset = Charset.forName("UTF-8");
@@ -172,18 +172,26 @@ public class SOInjector {
         String iMode = IMPORT_MODE_INSERT;
 
         final int windowNo = 999; // TODO caution window number!
+
+        // org.adempiere.webui.apps.AEnv::getMWindowVO(int, int, int)
         GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0);
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initComponents()
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initPanel(MQuery query)
         Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", gridWindow.isSOTrx());
 
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int)
         gridWindow.initTab(0);
         GridTab headerTab = gridWindow.getTab(0);
         new GridTabHolder(headerTab);
 
+        // org.adempiere.webui.panel.action.FileImportAction::importFile()
         Set<String> tables = new HashSet<String>();
         List<GridTab> childs = new ArrayList<GridTab>();
         for (int i = 1; i < gridWindow.getTabCount(); i++) {
-            /* org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int) */
+            // org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int)
             gridWindow.initTab(i);
             GridTab gTab = gridWindow.getTab(i);
             new GridTabHolder(gTab);
@@ -222,7 +230,7 @@ public class SOInjector {
         }
 
         public void dataStatusChanged(DataStatusEvent e) {
-            /* org.adempiere.webui.adwindow.ADTabpanel::dataStatusChanged(DataStatusEvent) */
+            // org.adempiere.webui.adwindow.ADTabpanel::dataStatusChanged(DataStatusEvent)
             int col = e.getChangedColumn();
             // Process Callout
             GridField mField = gridTab.getField(col);
