@@ -12,5 +12,7 @@ public class BizzySalesOrder implements Serializable {
     public int bpHoldingNo;
     public String bpLocationName;
 
+    public char orderSource;
+
     public BizzySalesOrderLine[] orderLines;
 }
