@@ -3,13 +3,13 @@ package com.sahabatabadi.api.salesorder;
 import java.io.Serializable;
 
 public class BizzySalesOrderLine implements Serializable {
-	private static final long serialVersionUID = 20200728L;
+	private static final long serialVersionUID = 20200729L;
 
     public String productId;
     public int quantity;
 
     public char principalId;
-    public int discount;
+    public double discount;
 
     /**
      * Empty constructor
