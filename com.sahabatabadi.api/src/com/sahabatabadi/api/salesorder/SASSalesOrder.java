@@ -46,7 +46,9 @@ public class SASSalesOrder {
     protected CLogger log = CLogger.getCLogger(getClass());
 
     private HashMap<Character, String> orgMap = new HashMap<>();
+    private HashMap<String, Integer> orgIdMap = new HashMap<>();
     private HashMap<Character, String> orgTrxMap = new HashMap<>();
+    private HashMap<String, Integer> orgTrxIdMap = new HashMap<>();
     private HashMap<Character, String> warehouseMap = new HashMap<>();
 
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -173,10 +175,33 @@ public class SASSalesOrder {
         orgMap.put('D', "Kenari");
         orgMap.put('M', "Tangerang");
 
+        orgIdMap.put("Sunter", 1000001);
+        orgIdMap.put("Tebet", 1000002);
+        orgIdMap.put("Glodok", 1000003);
+        orgIdMap.put("Kenari", 1000004);
+        orgIdMap.put("Tangerang", 2200019);
+
+        orgTrxMap.put('1', "TR1");
+        orgTrxMap.put('2', "TR2");
+        orgTrxMap.put('3', "TR3");
+        orgTrxMap.put('4', "TR4");
+        orgTrxMap.put('5', "TR5");
+        orgTrxMap.put('R', "TGR");
         orgTrxMap.put('P', "PAN");
         orgTrxMap.put('L', "LEG");
         orgTrxMap.put('C', "SCH");
         orgTrxMap.put('U', "SUP");
+
+        orgTrxIdMap.put("TR1", 1000006);
+        orgTrxIdMap.put("TR2", 1000008);
+        orgTrxIdMap.put("TR3", 2200020);
+        orgTrxIdMap.put("TR4", 1000010);
+        orgTrxIdMap.put("TR5", 2200021);
+        orgTrxIdMap.put("TGR", 2200022);
+        orgTrxIdMap.put("PAN", 1000011);
+        orgTrxIdMap.put("LEG", 1000012);
+        orgTrxIdMap.put("SCH", 1000023);
+        orgTrxIdMap.put("SUP", 1000025);
 
         warehouseMap.put('A', "Sunter F1-2");
         warehouseMap.put('B', "Tebet");
