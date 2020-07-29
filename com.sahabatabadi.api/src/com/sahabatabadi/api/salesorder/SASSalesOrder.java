@@ -69,8 +69,7 @@ public class SASSalesOrder {
         this.datePromised = this.dateOrdered;
         this.warehouse = this.warehouseMap.get(bizzySo.soff_code);
 
-        char principal = 'S'; // TODO; 
-        
+        char principal = bizzySo.orderLines[0].principalId;
         if (principal == 'S') {
             this.orgTrx = getSignifyOrgTrx(this.bpHoldingId);
         } else {
@@ -94,7 +93,6 @@ public class SASSalesOrder {
         return latestLineNumber;
     }
 
-    /* TODO need to test query in operation */
     private String getSignifyOrgTrx(String bpHoldingId) {
         String retValue = null;
         String orgTrxQuery = 
