@@ -9,6 +9,7 @@ import java.util.List;
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
 import org.compiere.model.PO;
+import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
 public class SASSalesOrder {
@@ -21,11 +22,11 @@ public class SASSalesOrder {
     public String dateOrdered;          // DateOrdered: 2020-01-02
     public String datePromised;         // DatePromised: 2020-01-02
     public String bpHoldingId;          // C_BPartner_ID[Value]
-    // public String invoiceBpHoldingId;   // Bill_BPartner_ID[Value]
+    public String invoiceBpHoldingId;   // Bill_BPartner_ID[Value]
     public String bpLocation;           // C_BPartner_Location_[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
-    // public String invoiceBpLocation;    // Bill_Location_ID[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
-    // public String bpContact;            // AD_User_ID[Name]: Yudi Bunadi Tjhie
-    // public String invoiceBpContact;     // Bill_User_ID[Name]: Yudi Bunadi Tjhie
+    public String invoiceBpLocation;    // Bill_Location_ID[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
+    public String bpContact;            // AD_User_ID[Name]: Yudi Bunadi Tjhie
+    public String invoiceBpContact;     // Bill_User_ID[Name]: Yudi Bunadi Tjhie
     // public char deliveryRule;           // DeliveryRule
     // public char priorityRule;           // PriorityRule
     public String warehouse;            // M_Warehouse_ID[Value]: Sunter F1-2
@@ -35,35 +36,45 @@ public class SASSalesOrder {
     // public String pricelist;            // M_PriceList_ID[Name]: SALES-IDR
     // public String paymentTerm;          // C_PaymentTerm_ID[Value]: 30 days
     // public String project;              // C_Project_ID[Value]: Retail
-    public String orgTrx;               // AD_OrgTrx_ID[Name]: TR1 TODO urgent!!
+    public String orgTrx;               // AD_OrgTrx_ID[Name]: TR1
 
     public SASSalesOrderLine[] orderLines;
 
+    protected CLogger log = CLogger.getCLogger(getClass());
+
     private HashMap<Character, String> orgMap = new HashMap<>();
-    private HashMap<String, Integer> orgIdMap = new HashMap<>();
     private HashMap<Character, String> orgTrxMap = new HashMap<>();
-    private HashMap<String, Integer> orgTrxIdMap = new HashMap<>();
+    private HashMap<Character, String> warehouseMap = new HashMap<>();
 
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     private int latestLineNumber = 0;
 
+    // huge caveat: this class expects the bizzySo argument to at least have one order line, and is split based on principal and discount
     public SASSalesOrder(BizzySalesOrder bizzySo) {
-        // TODO may have to split this bizzy order into multiple SOs
         initializeMaps();
 
         this.org = orgMap.get(bizzySo.soff_code);
         this.description = bizzySo.description;
         this.dateOrdered = formatter.format(bizzySo.dateOrdered);
         this.bpHoldingId = prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
-        this.bpLocation = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // TODO;
+        this.bpLocation = bizzySo.bpLocationName;
 
         this.docType = "OPN (Order Penjualan Non tax)"; // TODO;
         this.datePromised = this.dateOrdered;
-        this.warehouse = "Sunter F1-2"; // TODO;
-        this.orgTrx = "TR1"; // TODO;
+        this.warehouse = this.warehouseMap.get(bizzySo.soff_code);
+
+        char principal = 'S'; // TODO; 
+        
+        if (principal == 'S') {
+            this.orgTrx = getSignifyOrgTrx(this.bpHoldingId);
+        } else {
+            this.orgTrx = orgTrxMap.get(principal);
+        }
 
         int docTypeId = 550265; // TODO docType TBD
+
+        // org.compiere.model.PO::saveNew()
         PO po = getMOrderPO(this.orgIdMap.get(this.org), this.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
         this.documentNo = DB.getDocumentNo(docTypeId, null, false, po);
 
@@ -78,12 +89,48 @@ public class SASSalesOrder {
         return latestLineNumber;
     }
 
+    /* TODO need to test query in operation */
+    private String getSignifyOrgTrx(String bpHoldingId) {
+        String retValue = null;
+        String orgTrxQuery = 
+            "SELECT org.name\n" + 
+            "FROM C_BPartner bp, SAS_BPRule r, AD_Org org\n" + 
+            "WHERE bp.value = ? " + 
+            "    AND bp.c_bpartner_id = r.c_bpartner_id " +
+            "    AND r.ad_orgtrx_id = org.ad_org_id " + 
+            "    AND org.name LIKE 'TR%'\n";
+            
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(orgTrxQuery, null);
+            pstmt.setInt(1, bpHoldingId);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                retValue = rs.getString(1);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, orgTrxQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
+
+        if (retValue == null)
+            log.fine("-");
+        else if (log.isLoggable(Level.FINE))
+            log.fine(retValue.toString());
+
+        return retValue;
+    }
+
     private PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
-        // TODO hardcoded parameters
+        // TODO hardcoded parameters, retrace 
         int Record_ID = 0;
         String trxName = null;
         String tableName = "C_Order";
 
+        /* org.compiere.model.MTable::getPO(int, String) */
         PO po = null;
         List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
         if (factoryList != null) {
@@ -98,7 +145,7 @@ public class SASSalesOrder {
             }
         }
 
-        // prefix: @AD_Org_ID<Value>@@AD_OrgTrx_ID<Name>@-OPT-@DateOrdered<yyMM>@-
+        /* prefix: @AD_Org_ID<Value>@@AD_OrgTrx_ID<Name>@-OPT-@DateOrdered<yyMM>@- */
         po.set_ValueNoCheck("AD_Org_ID", orgId);
         po.set_ValueNoCheck("AD_OrgTrx_ID", orgTrxId);
         po.set_ValueNoCheck("DateOrdered", new Timestamp(dateOrdered.getTime()));
@@ -123,32 +170,15 @@ public class SASSalesOrder {
         orgMap.put('D', "Kenari");
         orgMap.put('M', "Tangerang");
 
-        orgIdMap.put("Sunter", 1000001);
-        orgIdMap.put("Tebet", 1000002);
-        orgIdMap.put("Glodok", 1000003);
-        orgIdMap.put("Kenari", 1000004);
-        orgIdMap.put("Tangerang", 2200019);
-
-        orgTrxMap.put('1', "TR1");
-        orgTrxMap.put('2', "TR2");
-        orgTrxMap.put('3', "TR3");
-        orgTrxMap.put('4', "TR4");
-        orgTrxMap.put('5', "TR5");
-        orgTrxMap.put('R', "TGR");
         orgTrxMap.put('P', "PAN");
         orgTrxMap.put('L', "LEG");
         orgTrxMap.put('C', "SCH");
         orgTrxMap.put('U', "SUP");
 
-        orgTrxIdMap.put("TR1", 1000006);
-        orgTrxIdMap.put("TR2", 1000008);
-        orgTrxIdMap.put("TR3", 2200020);
-        orgTrxIdMap.put("TR4", 1000010);
-        orgTrxIdMap.put("TR5", 2200021);
-        orgTrxIdMap.put("TGR", 2200022);
-        orgTrxIdMap.put("PAN", 1000011);
-        orgTrxIdMap.put("LEG", 1000012);
-        orgTrxIdMap.put("SCH", 1000023);
-        orgTrxIdMap.put("SUP", 1000025);
+        warehouseMap.put('A', "Sunter F1-2");
+        warehouseMap.put('B', "Tebet");
+        warehouseMap.put('C', "Glodok");
+        warehouseMap.put('D', "Kenari");
+        warehouseMap.put('M', "Tangerang");
     }
 }

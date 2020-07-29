@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -49,13 +50,58 @@ public class SOInjector {
     
     public static boolean apiName(BizzySalesOrder bizzySo) {
         emulateLogin();
+        // TODO maybe have to get principal and discount by query
 
-        SASSalesOrder sasSo = new SASSalesOrder(bizzySo);
-        createCsv(sasSo, TEMP_CSV_FILEPATH);
-        return injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+        ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
+        for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
+            BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
+            splitBizzySo.orderLines = soLineGroup;
+
+            SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
+            createCsv(sasSo, TEMP_CSV_FILEPATH);
+            injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+        }
+
+        return true;
+    }
+
+    private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
+        // TODO beware comparison of Double, maybe better to get discountListId
+        HashMap<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
+
+        for (int i = 0; i < bizzySoLines.length; i++) {
+            char principal = bizzySoLines[i].principalId;
+            double discount = bizzySoLines[i].discount;
+
+            if (!principalGrouping.containsKey(principal)) {
+                principalGrouping.put(principal, new HashMap<Double, ArrayList<BizzySalesOrderLine>>());
+            }
+
+            HashMap<Double, ArrayList<BizzySalesOrderLine>> discountGrouping = principalGrouping.get(principal);
+
+            if (!discountGrouping.containsKey(discount)) {
+                discountGrouping.put(discount, new ArrayList<BizzySalesOrderLine>());
+            }
+
+            ArrayList<BizzySalesOrderLine> groupedLines = discountGrouping.get(discount);
+
+            groupedLines.add(bizzySoLines[i]);
+        }
+
+        ArrayList<BizzySalesOrderLine[]> toReturn = new ArrayList();
+
+        for (Map.Entry<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> mapElement : principalGrouping.entrySet()) {
+            HashMap<Double, ArrayList<BizzySalesOrderLine>> discountGrouping = mapElement.getValue();
+
+            for (Map.Entry<Double, ArrayList<BizzySalesOrderLine>> innerMapElement : discountGrouping.entrySet()) {
+                ArrayList<BizzySalesOrderLine> groupedLines = innerMapElement.getValue();
+                toReturn.add(groupedLines.toArray(new BizzySalesOrderLine[groupedLines.size()]));
+            }
+        }
     }
 
     private static void emulateLogin() {
+        // TODO work in progress
         Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
         Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
         Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);
@@ -81,6 +127,7 @@ public class SOInjector {
     }
 
     private static void createCsv(SASSalesOrder sasSo, String filepath) {
+        // TODO add Invoice partner & BP contacts headers
         final String[] header = new String[] {
             "AD_Org_ID[Name]", 
             "DocumentNo/K", 
@@ -162,6 +209,7 @@ public class SOInjector {
     }
 
     private static boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
+        // org.adempiere.webui.panel.action.FileImportAction::importFile()
         IGridTabImporter importer = new GridTabCSVImporter();
 
         Charset charset = Charset.forName("UTF-8");
@@ -169,17 +217,26 @@ public class SOInjector {
         String iMode = IMPORT_MODE_INSERT;
 
         final int windowNo = 999; // TODO caution window number!
+
+        // org.adempiere.webui.apps.AEnv::getMWindowVO(int, int, int)
         GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0);
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initComponents()
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initPanel(MQuery query)
         Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", gridWindow.isSOTrx());
 
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int)
         gridWindow.initTab(0);
         GridTab headerTab = gridWindow.getTab(0);
         new GridTabHolder(headerTab);
 
+        // org.adempiere.webui.panel.action.FileImportAction::importFile()
         Set<String> tables = new HashSet<String>();
         List<GridTab> childs = new ArrayList<GridTab>();
         for (int i = 1; i < gridWindow.getTabCount(); i++) {
+            // org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int)
             gridWindow.initTab(i);
             GridTab gTab = gridWindow.getTab(i);
             new GridTabHolder(gTab);
@@ -218,6 +275,7 @@ public class SOInjector {
         }
 
         public void dataStatusChanged(DataStatusEvent e) {
+            // org.adempiere.webui.adwindow.ADTabpanel::dataStatusChanged(DataStatusEvent)
             int col = e.getChangedColumn();
             // Process Callout
             GridField mField = gridTab.getField(col);
