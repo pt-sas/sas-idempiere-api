@@ -50,6 +50,8 @@ public class SASSalesOrder {
     private HashMap<Character, String> orgTrxMap = new HashMap<>();
     private HashMap<String, Integer> orgTrxIdMap = new HashMap<>();
     private HashMap<Character, String> warehouseMap = new HashMap<>();
+    private HashMap<String, String> docTypeMap = new HashMap<>();
+    private HashMap<String, Integer> docTypeIdMap = new HashMap<>();
 
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -65,7 +67,11 @@ public class SASSalesOrder {
         this.bpHoldingId = prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
         this.bpLocation = bizzySo.bpLocationName;
 
-        this.docType = "OPN (Order Penjualan Non tax)"; // TODO;
+        StringBuilder sb = new StringBuilder("O");
+        sb.append(bizzySo.orderSource);
+        sb.append(getBPLocationIsTax(bizzySo.bpLocationName);
+        this.docType = docTypeMap.get(sb.toString());
+
         this.datePromised = this.dateOrdered;
         this.warehouse = this.warehouseMap.get(bizzySo.soff_code);
 
@@ -76,11 +82,9 @@ public class SASSalesOrder {
             this.orgTrx = orgTrxMap.get(principal);
         }
 
-        int docTypeId = 550265; // TODO docType TBD
-
         // org.compiere.model.PO::saveNew()
         PO po = getMOrderPO(this.orgIdMap.get(this.org), this.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
-        this.documentNo = DB.getDocumentNo(docTypeId, null, false, po);
+        this.documentNo = DB.getDocumentNo(docTypeIdMap.get(this.docType);, null, false, po);
 
         orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
@@ -113,6 +117,37 @@ public class SASSalesOrder {
                 retValue = rs.getString(1);
         } catch (Exception e) {
             log.log(Level.SEVERE, orgTrxQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
+
+        if (retValue == null)
+            log.fine("-");
+        else if (log.isLoggable(Level.FINE))
+            log.fine(retValue.toString());
+
+        return retValue;
+    }
+
+    private String getBPLocationIsTax(String bpLocation) {
+        String retValue = null;
+        String isTaxQuery = 
+            "SELECT istax\n" + 
+            "FROM C_BPartner_Location\n" + 
+            "WHERE name LIKE ?\n";
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(isTaxQuery, null);
+            pstmt.setString(1, bpLocation);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                retValue = rs.getString(1);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, isTaxQuery, e);
         } finally {
             DB.close(rs, pstmt);
             rs = null;
@@ -206,5 +241,15 @@ public class SASSalesOrder {
         warehouseMap.put('C', "Glodok");
         warehouseMap.put('D', "Kenari");
         warehouseMap.put('M', "Tangerang");
+
+        docTypeMap.put("OBN", "OBN (Online BFF Non tax)");
+        docTypeMap.put("OBT", "OBT (Online BFF Tax)");
+        docTypeMap.put("OSN", "OSN (Online Toko Smart Non tax)");
+        docTypeMap.put("OST", "OST (Online Toko Smart Tax)");
+
+        docTypeIdMap.put("OBN (Online BFF Non tax)", 2200042);
+        docTypeIdMap.put("OBT (Online BFF Tax)", 2200043);
+        docTypeIdMap.put("OSN (Online Toko Smart Non tax)", 2200044);
+        docTypeIdMap.put("OST (Online Toko Smart Tax)", 2200045);
     }
 }
