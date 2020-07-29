@@ -69,7 +69,7 @@ public class SASSalesOrder {
 
         StringBuilder sb = new StringBuilder("O");
         sb.append(bizzySo.orderSource);
-        sb.append(getBPLocationIsTax(bizzySo.bpLocationName);
+        sb.append(getBPLocationIsTax(bizzySo.bpLocationName));
         this.docType = docTypeMap.get(sb.toString());
 
         this.datePromised = this.dateOrdered;
@@ -84,7 +84,7 @@ public class SASSalesOrder {
 
         // org.compiere.model.PO::saveNew()
         PO po = getMOrderPO(this.orgIdMap.get(this.org), this.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
-        this.documentNo = DB.getDocumentNo(docTypeIdMap.get(this.docType);, null, false, po);
+        this.documentNo = DB.getDocumentNo(docTypeIdMap.get(this.docType), null, false, po);
 
         orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
