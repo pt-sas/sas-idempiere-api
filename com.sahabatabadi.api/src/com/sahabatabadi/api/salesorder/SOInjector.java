@@ -48,9 +48,10 @@ public class SOInjector {
 
     protected static CLogger log = CLogger.getCLogger(SOInjector.class);
     
-    public static boolean apiName(BizzySalesOrder bizzySo) {
+    public static String[] apiName(BizzySalesOrder bizzySo) {
         emulateLogin();
         // TODO maybe have to get principal and discount by query
+        ArrayList<String> insertedDocNums = new ArrayList<>();
 
         ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
         for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
@@ -59,10 +60,14 @@ public class SOInjector {
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
             createCsv(sasSo, TEMP_CSV_FILEPATH);
-            injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+            boolean injectSuccess = injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+
+            if (injectSuccess) {
+                insertedDocNums.add(sasSo.documentNo);
+            }
         }
 
-        return true;
+        return insertedDocNums.toArray(new String[insertedDocNums.size()]);
     }
 
     private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
@@ -104,6 +109,7 @@ public class SOInjector {
 
     private static void emulateLogin() {
         // TODO work in progress
+        // TODO change login info to use API account
         Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
         Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
         Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);

@@ -8,5 +8,5 @@ import com.sahabatabadi.api.salesorder.BizzySalesOrder;
 public interface IRemoteApi extends Remote {
     public static final String BINDING_NAME = "SASiDempiereRemoteApi";
     
-	public boolean injectSo(BizzySalesOrder bizzySo) throws RemoteException;  
+	public String[] injectSo(BizzySalesOrder bizzySo) throws RemoteException;  
 }
