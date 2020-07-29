@@ -48,7 +48,7 @@ public class SOInjector {
 
     protected static CLogger log = CLogger.getCLogger(SOInjector.class);
     
-    public static String[] apiName(BizzySalesOrder bizzySo) {
+    public static String apiName(BizzySalesOrder bizzySo) {
         emulateLogin();
         // TODO maybe have to get principal and discount by query
         ArrayList<String> insertedDocNums = new ArrayList<>();
@@ -67,7 +67,7 @@ public class SOInjector {
             }
         }
 
-        return insertedDocNums.toArray(new String[insertedDocNums.size()]);
+        return insertedDocNums.toString();
     }
 
     private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
