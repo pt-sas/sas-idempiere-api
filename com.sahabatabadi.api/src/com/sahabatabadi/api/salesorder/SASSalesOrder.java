@@ -43,26 +43,26 @@ public class SASSalesOrder {
     protected CLogger log = CLogger.getCLogger(getClass());
 
     private HashMap<Character, String> orgMap = new HashMap<>();
-    // private HashMap<String, Integer> orgIdMap = new HashMap<>();
     private HashMap<Character, String> orgTrxMap = new HashMap<>();
+    private HashMap<Character, String> warehouseMap = new HashMap<>();
 
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     private int latestLineNumber = 0;
 
+    // huge caveat: this class expects the bizzySo argument to at least have one order line, and is split based on principal and discount
     public SASSalesOrder(BizzySalesOrder bizzySo) {
-        // TODO may have to split this bizzy order into multiple SOs
         initializeMaps();
 
         this.org = orgMap.get(bizzySo.soff_code);
         this.description = bizzySo.description;
         this.dateOrdered = formatter.format(bizzySo.dateOrdered);
         this.bpHoldingId = prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
-        this.bpLocation = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // TODO;
+        this.bpLocation = bizzySo.bpLocationName;
 
         this.docType = "OPN (Order Penjualan Non tax)"; // TODO;
         this.datePromised = this.dateOrdered;
-        this.warehouse = "Sunter F1-2"; // TODO;
+        this.warehouse = this.warehouseMap.get(bizzySo.soff_code);
 
         char principal = 'S'; // TODO; 
         
@@ -73,9 +73,10 @@ public class SASSalesOrder {
         }
 
         int docTypeId = 550265; // TODO docType TBD
+
+        // org.compiere.model.PO::saveNew()
         PO po = getMOrderPO(this.orgIdMap.get(this.org), this.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
         this.documentNo = DB.getDocumentNo(docTypeId, null, false, po);
-        // TODO retrace and get source
 
         orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
@@ -169,15 +170,15 @@ public class SASSalesOrder {
         orgMap.put('D', "Kenari");
         orgMap.put('M', "Tangerang");
 
-        // orgIdMap.put("Sunter", 1000001);
-        // orgIdMap.put("Tebet", 1000002);
-        // orgIdMap.put("Glodok", 1000003);
-        // orgIdMap.put("Kenari", 1000004);
-        // orgIdMap.put("Tangerang", 2200019);
-
         orgTrxMap.put('P', "PAN");
         orgTrxMap.put('L', "LEG");
         orgTrxMap.put('C', "SCH");
         orgTrxMap.put('U', "SUP");
+
+        warehouseMap.put('A', "Sunter F1-2");
+        warehouseMap.put('B', "Tebet");
+        warehouseMap.put('C', "Glodok");
+        warehouseMap.put('D', "Kenari");
+        warehouseMap.put('M', "Tangerang");
     }
 }
