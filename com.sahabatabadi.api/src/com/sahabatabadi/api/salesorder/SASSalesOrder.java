@@ -1,10 +1,13 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;
@@ -104,7 +107,7 @@ public class SASSalesOrder {
         ResultSet rs = null;
         try {
             pstmt = DB.prepareStatement(orgTrxQuery, null);
-            pstmt.setInt(1, bpHoldingId);
+            pstmt.setString(1, bpHoldingId);
             rs = pstmt.executeQuery();
             if (rs.next())
                 retValue = rs.getString(1);

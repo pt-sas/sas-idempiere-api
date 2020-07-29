@@ -88,7 +88,7 @@ public class SOInjector {
             groupedLines.add(bizzySoLines[i]);
         }
 
-        ArrayList<BizzySalesOrderLine[]> toReturn = new ArrayList();
+        ArrayList<BizzySalesOrderLine[]> toReturn = new ArrayList<>();
 
         for (Map.Entry<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> mapElement : principalGrouping.entrySet()) {
             HashMap<Double, ArrayList<BizzySalesOrderLine>> discountGrouping = mapElement.getValue();
@@ -98,6 +98,8 @@ public class SOInjector {
                 toReturn.add(groupedLines.toArray(new BizzySalesOrderLine[groupedLines.size()]));
             }
         }
+        
+        return toReturn;
     }
 
     private static void emulateLogin() {
