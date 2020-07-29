@@ -69,7 +69,7 @@ public class SASSalesOrder {
 
         StringBuilder sb = new StringBuilder("O");
         sb.append(bizzySo.orderSource);
-        sb.append(getBPLocationIsTax(bizzySo.bpLocationName));
+        sb.append(getBPLocationIsTax(bizzySo.bpLocationName) ? "T" : "N");
         this.docType = docTypeMap.get(sb.toString());
 
         this.datePromised = this.dateOrdered;
@@ -131,7 +131,7 @@ public class SASSalesOrder {
         return retValue;
     }
 
-    private String getBPLocationIsTax(String bpLocation) {
+    private boolean getBPLocationIsTax(String bpLocation) {
         String retValue = null;
         String isTaxQuery = 
             "SELECT istax\n" + 
@@ -159,7 +159,11 @@ public class SASSalesOrder {
         else if (log.isLoggable(Level.FINE))
             log.fine(retValue.toString());
 
-        return retValue;
+        if (retValue.equals("Y")) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
