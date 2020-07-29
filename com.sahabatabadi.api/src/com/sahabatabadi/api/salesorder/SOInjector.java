@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -49,10 +50,54 @@ public class SOInjector {
     
     public static boolean apiName(BizzySalesOrder bizzySo) {
         emulateLogin();
+        // TODO maybe have to get principal and discount by query
 
-        SASSalesOrder sasSo = new SASSalesOrder(bizzySo);
-        createCsv(sasSo, TEMP_CSV_FILEPATH);
-        return injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+        ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
+        for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
+            BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
+            splitBizzySo.orderLines = soLineGroup;
+
+            SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
+            createCsv(sasSo, TEMP_CSV_FILEPATH);
+            injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+        }
+
+        return true;
+    }
+
+    private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
+        // TODO beware comparison of Double, maybe better to get discountListId
+        HashMap<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
+
+        for (int i = 0; i < bizzySoLines.length; i++) {
+            char principal = bizzySoLines[i].principalId;
+            double discount = bizzySoLines[i].discount;
+
+            if (!principalGrouping.containsKey(principal)) {
+                principalGrouping.put(principal, new HashMap<Double, ArrayList<BizzySalesOrderLine>>());
+            }
+
+            HashMap<Double, ArrayList<BizzySalesOrderLine>> discountGrouping = principalGrouping.get(principal);
+
+            if (!discountGrouping.containsKey(discount)) {
+                discountGrouping.put(discount, new ArrayList<BizzySalesOrderLine>());
+            }
+
+            ArrayList<BizzySalesOrderLine> groupedLines = discountGrouping.get(discount);
+
+            groupedLines.add(bizzySoLines[i]);
+        }
+
+        ArrayList<BizzySalesOrderLine[]> toReturn = new ArrayList();
+
+        for (Map.Entry<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> mapElement : principalGrouping.entrySet()) {
+            HashMap<Double, ArrayList<BizzySalesOrderLine>> discountGrouping = mapElement.getValue();
+
+            for (Map.Entry<Double, ArrayList<BizzySalesOrderLine>> innerMapElement : discountGrouping.entrySet()) {
+                ArrayList<BizzySalesOrderLine> groupedLines = innerMapElement.getValue();
+                toReturn.add(groupedLines.toArray(new BizzySalesOrderLine[groupedLines.size()]));
+            }
+        }
     }
 
     private static void emulateLogin() {
