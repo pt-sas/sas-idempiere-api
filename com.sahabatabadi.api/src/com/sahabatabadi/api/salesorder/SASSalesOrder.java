@@ -105,7 +105,7 @@ public class SASSalesOrder {
             "WHERE bp.value = ? " + 
             "    AND bp.c_bpartner_id = r.c_bpartner_id " +
             "    AND r.ad_orgtrx_id = org.ad_org_id " + 
-            "    AND org.name LIKE 'TR%'\n";
+            "    AND (org.name LIKE 'TR%' OR org.name LIKE 'TGR')\n";
             
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -218,12 +218,6 @@ public class SASSalesOrder {
         orgIdMap.put("Kenari", 1000004);
         orgIdMap.put("Tangerang", 2200019);
 
-        // orgTrxMap.put('1', "TR1");
-        // orgTrxMap.put('2', "TR2");
-        // orgTrxMap.put('3', "TR3");
-        // orgTrxMap.put('4', "TR4");
-        // orgTrxMap.put('5', "TR5");
-        // orgTrxMap.put('R', "TGR");
         orgTrxMap.put("Panasonic", "PAN");
         orgTrxMap.put("Legrand", "LEG");
         orgTrxMap.put("Schneider", "SCH");
