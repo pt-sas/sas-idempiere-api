@@ -47,7 +47,7 @@ public class SASSalesOrder {
 
     private HashMap<Character, String> orgMap = new HashMap<>();
     private HashMap<String, Integer> orgIdMap = new HashMap<>();
-    private HashMap<Character, String> orgTrxMap = new HashMap<>();
+    private HashMap<String, String> orgTrxMap = new HashMap<>();
     private HashMap<String, Integer> orgTrxIdMap = new HashMap<>();
     private HashMap<Character, String> warehouseMap = new HashMap<>();
     private HashMap<String, String> docTypeMap = new HashMap<>();
@@ -75,9 +75,9 @@ public class SASSalesOrder {
         this.datePromised = this.dateOrdered;
         this.warehouse = this.warehouseMap.get(bizzySo.soff_code);
 
-        char principal = bizzySo.orderLines[0].principalId;
-        if (principal == 'S') {
-            this.orgTrx = getSignifyOrgTrx(this.bpHoldingId);
+        String principal = bizzySo.orderLines[0].principalId;
+        if (principal.equals("Philips")) {
+            this.orgTrx = getPhilipsOrgTrx(this.bpHoldingId);
         } else {
             this.orgTrx = orgTrxMap.get(principal);
         }
@@ -97,7 +97,7 @@ public class SASSalesOrder {
         return latestLineNumber;
     }
 
-    private String getSignifyOrgTrx(String bpHoldingId) {
+    private String getPhilipsOrgTrx(String bpHoldingId) {
         String retValue = null;
         String orgTrxQuery = 
             "SELECT org.name\n" + 
@@ -218,16 +218,16 @@ public class SASSalesOrder {
         orgIdMap.put("Kenari", 1000004);
         orgIdMap.put("Tangerang", 2200019);
 
-        orgTrxMap.put('1', "TR1");
-        orgTrxMap.put('2', "TR2");
-        orgTrxMap.put('3', "TR3");
-        orgTrxMap.put('4', "TR4");
-        orgTrxMap.put('5', "TR5");
-        orgTrxMap.put('R', "TGR");
-        orgTrxMap.put('P', "PAN");
-        orgTrxMap.put('L', "LEG");
-        orgTrxMap.put('C', "SCH");
-        orgTrxMap.put('U', "SUP");
+        // orgTrxMap.put('1', "TR1");
+        // orgTrxMap.put('2', "TR2");
+        // orgTrxMap.put('3', "TR3");
+        // orgTrxMap.put('4', "TR4");
+        // orgTrxMap.put('5', "TR5");
+        // orgTrxMap.put('R', "TGR");
+        orgTrxMap.put("Panasonic", "PAN");
+        orgTrxMap.put("Legrand", "LEG");
+        orgTrxMap.put("Schneider", "SCH");
+        orgTrxMap.put("Supreme", "SUP");
 
         orgTrxIdMap.put("TR1", 1000006);
         orgTrxIdMap.put("TR2", 1000008);
