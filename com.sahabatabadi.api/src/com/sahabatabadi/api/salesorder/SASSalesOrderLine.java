@@ -10,8 +10,8 @@ public class SASSalesOrderLine {
     // public String tax;              // C_Tax_ID[Name]: PPN
     // public int freightAmt;          // FreightAmt: 0
     // public char processed;          // Processed: Y
-    public String documentNo;       // OPTIONAL: C_Order_ID[DocumentNo]: ATR1-OPN-1001-0018
-    public String datePromised;     // OPTIONAL: DatePromised: 2020-01-02
+    public String documentNo;       // C_Order_ID[DocumentNo]: ATR1-OPN-1001-0018
+    public String datePromised;     // DatePromised: 2020-01-02
     // public int setInstance;         // M_AttributeSetInstance_ID: 0
     // public int discountListId;      // SAS_DiscountList_ID[Value]: 500266
     // public char isAffectPRomo;      // IsAffectPromo: N
@@ -20,7 +20,7 @@ public class SASSalesOrderLine {
         /* parsing values from Bizzy SO Line */
         this.header = header;
         this.productId = orderLine.productId;
-        this.quantity = orderLine.quantity; // TODO ask about natura (- 1)
+        this.quantity = orderLine.quantity;
 
         /* calculating values */
         this.lineNo = header.getNextLineNumber();
