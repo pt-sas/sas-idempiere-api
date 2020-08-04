@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -192,7 +193,7 @@ public class SOInjector {
         Env.setContext(Env.getCtx(), Env.AD_ORG_ID, 1000001);
         Env.setContext(Env.getCtx(), Env.AD_ORG_NAME, "Sunter");
         Env.setContext(Env.getCtx(), Env.M_WAREHOUSE_ID, 1000000);
-        Env.setContext(Env.getCtx(), "#Date", new java.sql.Timestamp(System.currentTimeMillis()));
+        Env.setContext(Env.getCtx(), "#Date", new Timestamp(System.currentTimeMillis()));
         Env.setContext(Env.getCtx(), "#ShowAcct", "N");
         Env.setContext(Env.getCtx(), "#ShowTrl", "Y");
         Env.setContext(Env.getCtx(), "#ShowAdvanced", "N");
