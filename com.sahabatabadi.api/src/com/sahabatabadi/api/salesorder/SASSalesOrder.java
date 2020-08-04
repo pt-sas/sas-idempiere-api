@@ -1,13 +1,9 @@
 package com.sahabatabadi.api.salesorder;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.adempiere.base.IModelFactory;
 import org.adempiere.base.Service;

@@ -211,6 +211,7 @@ public class SOUtils {
             rs = null;
             pstmt = null;
         }
+        return discount;
     }
 
     public static String prependZeros(int no, int totalLength) {
