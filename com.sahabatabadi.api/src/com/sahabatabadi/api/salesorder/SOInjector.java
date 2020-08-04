@@ -57,8 +57,7 @@ public class SOInjector {
     public static String apiName(BizzySalesOrder bizzySo) {
         emulateLogin();
 
-        SASSalesOrder sasHeader = new SASSalesOrder(bizzySo);
-        retrievePrincipalDiscountFromDb(bizzySo, sasHeader);
+        retrievePrincipalDiscountFromDb(bizzySo);
 
         ArrayList<String> insertedDocNums = new ArrayList<>();
 
@@ -81,7 +80,7 @@ public class SOInjector {
         return insertedDocNums.toString();
     }
 
-    private static void retrievePrincipalDiscountFromDb(BizzySalesOrder bizzySo, SASSalesOrder sasHeader) {
+    private static void retrievePrincipalDiscountFromDb(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = null;
             String principalQuery = 
@@ -128,8 +127,9 @@ public class SOInjector {
             try {
                 pstmt = DB.prepareStatement(discountQuery, null);
                 pstmt.setString(1, soLine.productId);
-                pstmt.setString(2, sasHeader.bpHoldingId);
-                pstmt.setString(3, sasHeader.orgTrx);
+                String bpCode = SOUtils.prependZeros(bizzySo.bpHoldingNo, 5);
+                pstmt.setString(2, bpCode);
+                pstmt.setString(3, SOUtils.getOrgTrx(bpCode, principal));
                 rs = pstmt.executeQuery();
                 if (rs.next())
                     discount = rs.getInt(1);
@@ -182,7 +182,7 @@ public class SOInjector {
     }
 
     private static void emulateLogin() {
-        // emulate proper login
+        // TODO emulate proper login
         Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
         Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
         Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);
