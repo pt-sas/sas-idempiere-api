@@ -82,65 +82,9 @@ public class SOInjector {
 
     private static void retrievePrincipalDiscountFromDb(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
-            String principal = null;
-            String principalQuery = 
-                "SELECT c.name\n" + 
-                "FROM M_Product p, M_Product_Category c\n" + 
-                "WHERE p.m_product_category_id = c.m_product_category_id AND p.value = ?;";
-
-            PreparedStatement pstmt = null;
-            ResultSet rs = null;
-            try {
-                pstmt = DB.prepareStatement(principalQuery, null);
-                pstmt.setString(1, soLine.productId);
-                rs = pstmt.executeQuery();
-                if (rs.next())
-                    principal = rs.getString(1);
-            } catch (Exception e) {
-                log.log(Level.SEVERE, principalQuery, e);
-            } finally {
-                DB.close(rs, pstmt);
-                rs = null;
-                pstmt = null;
-            }
-
+            String principal = SOUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
-
-            int discount = -1;
-            String discountQuery = 
-                "SELECT brk.sas_discountlist_id\n" + 
-                "FROM M_Product p, \n" + 
-                "    C_BPartner bp, \n" + 
-                "    SAS_BPRule r, \n" + 
-                "    AD_Org o, \n" + 
-                "    M_DiscountSchemaBreak brk\n" + 
-                // "    SAS_DiscountSchemaBreakLine discl\n" + 
-                "WHERE p.value = ? AND bp.value = ? AND o.name = ? \n" + // kode product, bp number, org trx
-                "    AND bp.c_bpartner_id = r.c_bpartner_id \n" + 
-                "    AND r.ad_orgtrx_id = o.ad_org_id \n" + 
-                "    AND brk.group1 = p.group1 \n" + 
-                "    AND brk.m_discountschema_id = r.m_discountschema_id;";
-                // "    AND brk.sas_discountlist_id = discl.sas_discountlist_id;";
-            
-            pstmt = null;
-            rs = null;
-            try {
-                pstmt = DB.prepareStatement(discountQuery, null);
-                pstmt.setString(1, soLine.productId);
-                String bpCode = SOUtils.prependZeros(bizzySo.bpHoldingNo, 5);
-                pstmt.setString(2, bpCode);
-                pstmt.setString(3, SOUtils.getOrgTrx(bpCode, principal));
-                rs = pstmt.executeQuery();
-                if (rs.next())
-                    discount = rs.getInt(1);
-            } catch (Exception e) {
-                log.log(Level.SEVERE, discountQuery, e);
-            } finally {
-                DB.close(rs, pstmt);
-                rs = null;
-                pstmt = null;
-            }
-            soLine.discount = discount; // setting double as an int
+            soLine.discount = SOUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal); // setting double as an int
         }
     }
 

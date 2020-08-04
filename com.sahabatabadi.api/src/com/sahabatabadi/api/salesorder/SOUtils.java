@@ -1,10 +1,18 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+
+import org.compiere.util.CLogger;
+import org.compiere.util.DB;
 
 public class SOUtils {
+    protected static CLogger log = CLogger.getCLogger(SOUtils.class);
+
     public static final Map<Character, String> orgMap;
     public static final Map<String, Integer> orgIdMap;
     public static final Map<String, String> orgTrxMap;
@@ -77,10 +85,13 @@ public class SOUtils {
     public static String getOrgTrx(String bpHoldingId, String principal) {
         if (principal.equals("Philips")) {
             String retValue = null;
-            String orgTrxQuery = "SELECT org.name\n" + "FROM C_BPartner bp, SAS_BPRule r, AD_Org org\n"
-                    + "WHERE bp.value = ? " + "    AND bp.c_bpartner_id = r.c_bpartner_id "
-                    + "    AND r.ad_orgtrx_id = org.ad_org_id "
-                    + "    AND (org.name LIKE 'TR%' OR org.name LIKE 'TGR')\n";
+            String orgTrxQuery = 
+                "SELECT org.name\n" + 
+                "FROM C_BPartner bp, SAS_BPRule r, AD_Org org\n" + 
+                "WHERE bp.value = ? " + 
+                "    AND bp.c_bpartner_id = r.c_bpartner_id " + 
+                "    AND r.ad_orgtrx_id = org.ad_org_id " + 
+                "    AND (org.name LIKE 'TR%' OR org.name LIKE 'TGR');";
 
             PreparedStatement pstmt = null;
             ResultSet rs = null;
@@ -109,7 +120,7 @@ public class SOUtils {
         String isTaxQuery = 
             "SELECT istax\n" + 
             "FROM C_BPartner_Location\n" + 
-            "WHERE name LIKE ?\n";
+            "WHERE name LIKE ?;";
 
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -136,6 +147,69 @@ public class SOUtils {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public static String getProductPrincipal(String productId) {
+        String principal = null;
+        String principalQuery = 
+            "SELECT c.name\n" + 
+            "FROM M_Product p, M_Product_Category c\n" + 
+            "WHERE p.value = ?\n" + 
+            "    AND p.m_product_category_id = c.m_product_category_id;";
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(principalQuery, null);
+            pstmt.setString(1, productId);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                principal = rs.getString(1);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, principalQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
+        return principal;
+    }
+
+    public static int getProductDiscount(String productId, int bpHoldingNo, String principal) {
+        int discount = -1;
+        String discountQuery = 
+            "SELECT brk.sas_discountlist_id\n" + 
+            "FROM M_Product p, \n" + 
+            "    C_BPartner bp, \n" + 
+            "    SAS_BPRule r, \n" + 
+            "    AD_Org o, \n" + 
+            "    M_DiscountSchemaBreak brk\n" + 
+            // "    SAS_DiscountSchemaBreakLine discl\n" + 
+            "WHERE p.value = ? AND bp.value = ? AND o.name = ? \n" + // kode product, bp number, org trx
+            "    AND bp.c_bpartner_id = r.c_bpartner_id \n" + 
+            "    AND r.ad_orgtrx_id = o.ad_org_id \n" + 
+            "    AND brk.group1 = p.group1 \n" + 
+            "    AND brk.m_discountschema_id = r.m_discountschema_id;";
+            // "    AND brk.sas_discountlist_id = discl.sas_discountlist_id;";
+        
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(discountQuery, null);
+            pstmt.setString(1, productId);
+            String bpCode = SOUtils.prependZeros(bpHoldingNo, SASSalesOrder.BP_ID_LENGTH);
+            pstmt.setString(2, bpCode);
+            pstmt.setString(3, SOUtils.getOrgTrx(bpCode, principal));
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                discount = rs.getInt(1);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, discountQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
         }
     }
 
