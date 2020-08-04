@@ -167,13 +167,14 @@ public class SASSalesOrder {
     }
 
     private PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
-        // TODO hardcoded parameters, retrace 
-        int Record_ID = 0;
-        String trxName = null;
-        String tableName = "C_Order";
+        /* org.compiere.model.GridTable.dataSavePO(int) */
+        int Record_ID = 0; // new PO
+        String trxName = null; 
 
         /* org.compiere.model.MTable::getPO(int, String) */
+        String tableName = "C_Order";
         PO po = null;
+
         List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
         if (factoryList != null) {
             for (IModelFactory factory : factoryList) {
