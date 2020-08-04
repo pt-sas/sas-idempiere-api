@@ -50,8 +50,12 @@ public class SOInjector {
 
     private static int lastReturnedWindowNo = 1000;
     
-    public static String apiName(BizzySalesOrder bizzySo) {
-        retrievePrincipalDiscountFromDb(bizzySo);
+    public String apiName(BizzySalesOrder bizzySo) {
+        for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
+            String principal = SOUtils.getProductPrincipal(soLine.productId);
+            soLine.principalId = principal;
+            soLine.discount = SOUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal); // setting double as an int
+        }
 
         ArrayList<String> insertedDocNums = new ArrayList<>();
 
@@ -74,15 +78,7 @@ public class SOInjector {
         return insertedDocNums.toString();
     }
 
-    private static void retrievePrincipalDiscountFromDb(BizzySalesOrder bizzySo) {
-        for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
-            String principal = SOUtils.getProductPrincipal(soLine.productId);
-            soLine.principalId = principal;
-            soLine.discount = SOUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal); // setting double as an int
-        }
-    }
-
-    private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
+    private ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
         // TODO beware comparison of Double, maybe better to get discountListId
         HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
@@ -206,7 +202,7 @@ public class SOInjector {
         return SOInjector.lastReturnedWindowNo;
     }
 
-    private static boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
+    private boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         IGridTabImporter importer = new GridTabCSVImporter();
 
@@ -264,7 +260,7 @@ public class SOInjector {
         }
     }
 
-    static class GridTabHolder implements DataStatusListener {
+    class GridTabHolder implements DataStatusListener {
         private GridTab gridTab;
 
         public GridTabHolder(GridTab gTab) {
