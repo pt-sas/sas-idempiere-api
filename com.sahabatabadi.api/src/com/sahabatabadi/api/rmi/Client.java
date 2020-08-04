@@ -37,7 +37,7 @@ public class Client {
         bizzySo.bpLocationName = "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // tax
         bizzySo.orderSource = 'B';
 
-        bizzySo.orderLines = new BizzySalesOrderLine[8];
+        bizzySo.orderLines = new BizzySalesOrderLine[9];
 
         bizzySo.orderLines[0] = new BizzySalesOrderLine();
         bizzySo.orderLines[0].productId = "AB0301485";
@@ -52,10 +52,10 @@ public class Client {
         // bizzySo.orderLines[1].discount = "8";
         
         bizzySo.orderLines[2] = new BizzySalesOrderLine();
-        bizzySo.orderLines[2].productId = "DA0600020";
+        bizzySo.orderLines[2].productId = "AB0301430";
         bizzySo.orderLines[2].quantity = 40;
         // bizzySo.orderLines[2].principalId = "Philips";
-        // bizzySo.orderLines[2].discount = "12.5";
+        // bizzySo.orderLines[2].discount = "8";
         
         bizzySo.orderLines[3] = new BizzySalesOrderLine();
         bizzySo.orderLines[3].productId = "BA0600010";
@@ -87,11 +87,11 @@ public class Client {
         // bizzySo.orderLines[7].principalId = "Supreme";
         // bizzySo.orderLines[7].discount = "42.01";
 
-        bizzySo.orderLines[7] = new BizzySalesOrderLine();
-        bizzySo.orderLines[7].productId = "GA0500010";
-        bizzySo.orderLines[7].quantity = 20;
-        // bizzySo.orderLines[7].principalId = "Supreme";
-        // bizzySo.orderLines[7].discount = "31.14";
+        bizzySo.orderLines[8] = new BizzySalesOrderLine();
+        bizzySo.orderLines[8].productId = "GA0500010";
+        bizzySo.orderLines[8].quantity = 20;
+        // bizzySo.orderLines[8].principalId = "Supreme";
+        // bizzySo.orderLines[8].discount = "31.14";
         
         return bizzySo;
     }
