@@ -51,6 +51,8 @@ public class SOInjector {
     public static final String TEMP_CSV_FILEPATH = "/tmp/sas_generated_so.csv";
 
     protected static CLogger log = CLogger.getCLogger(SOInjector.class);
+
+    private static int lastReturnedWindowNo = 1000;
     
     public static String apiName(BizzySalesOrder bizzySo) {
         emulateLogin();
@@ -67,6 +69,8 @@ public class SOInjector {
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
             createCsv(sasSo, TEMP_CSV_FILEPATH);
+
+            // TODO introduce locks? What if two instances insert SO at the same time?
             boolean injectSuccess = injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
 
             if (injectSuccess) {
@@ -290,6 +294,11 @@ public class SOInjector {
         }
     }
 
+    private static int getNextWindowNo() {
+        SOInjector.lastReturnedWindowNo += 1;
+        return SOInjector.lastReturnedWindowNo;
+    }
+
     private static boolean injectSalesOrder(String csvInputFilePath, String documentNo) {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         IGridTabImporter importer = new GridTabCSVImporter();
@@ -298,7 +307,7 @@ public class SOInjector {
 
         String iMode = IMPORT_MODE_INSERT;
 
-        final int windowNo = 999; // TODO caution window number!
+        final int windowNo = getNextWindowNo();
 
         // org.adempiere.webui.apps.AEnv::getMWindowVO(int, int, int)
         GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0);
