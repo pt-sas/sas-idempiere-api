@@ -177,12 +177,17 @@ public class SOInjector {
     }
 
     private static void emulateLogin() {
-        // TODO change login info to use API account, emulate proper login
+        // emulate proper login
         Env.setContext(Env.getCtx(), "#AD_User_Name", "Fajar-170203");
         Env.setContext(Env.getCtx(), "#AD_User_ID", 2211127);
         Env.setContext(Env.getCtx(), "#SalesRep_ID", 2211127);
         Env.setContext(Env.getCtx(), "#AD_Role_ID", 1000110);
         Env.setContext(Env.getCtx(), "#AD_Role_Name", "Role SLS Admin");
+        // Env.setContext(Env.getCtx(), "#AD_User_Name", "Api-01");
+        // Env.setContext(Env.getCtx(), "#AD_User_ID", 2214213);
+        // Env.setContext(Env.getCtx(), "#SalesRep_ID", 2214213);
+        // Env.setContext(Env.getCtx(), "#AD_Role_ID", 1000002);
+        // Env.setContext(Env.getCtx(), "#AD_Role_Name", "awn Admin");
         Env.setContext(Env.getCtx(), "#User_Level", " CO"); // Format 'SCO'
         Env.setContext(Env.getCtx(), Env.AD_ORG_ID, 1000001);
         Env.setContext(Env.getCtx(), Env.AD_ORG_NAME, "Sunter");
