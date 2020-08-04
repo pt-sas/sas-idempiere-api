@@ -90,10 +90,10 @@ public class SOInjector {
 
     private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
         // TODO beware comparison of Double, maybe better to get discountListId
-        HashMap<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
+        HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
         for (int i = 0; i < bizzySoLines.length; i++) {
-            char principal = bizzySoLines[i].principalId;
+            String principal = bizzySoLines[i].principalId;
             double discount = bizzySoLines[i].discount;
 
             if (!principalGrouping.containsKey(principal)) {
@@ -113,7 +113,7 @@ public class SOInjector {
 
         ArrayList<BizzySalesOrderLine[]> toReturn = new ArrayList<>();
 
-        for (Map.Entry<Character, HashMap<Double, ArrayList<BizzySalesOrderLine>>> mapElement : principalGrouping.entrySet()) {
+        for (Map.Entry<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> mapElement : principalGrouping.entrySet()) {
             HashMap<Double, ArrayList<BizzySalesOrderLine>> discountGrouping = mapElement.getValue();
 
             for (Map.Entry<Double, ArrayList<BizzySalesOrderLine>> innerMapElement : discountGrouping.entrySet()) {
