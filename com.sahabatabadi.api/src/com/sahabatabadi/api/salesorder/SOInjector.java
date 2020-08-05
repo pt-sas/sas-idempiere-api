@@ -216,7 +216,7 @@ public class SOInjector {
         final int windowNo = getNextWindowNo();
 
         // org.adempiere.webui.apps.AEnv::getMWindowVO(int, int, int)
-        GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, 0);
+        GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, SALES_ORDER_WINDOW_ID, SALES_ORDER_MENU_ID);
 
         // org.adempiere.webui.adwindow.AbstractADWindowContent::initComponents()
         GridWindow gridWindow = new GridWindow(gWindowVO, true);
