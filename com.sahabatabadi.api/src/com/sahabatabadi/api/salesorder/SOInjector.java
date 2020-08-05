@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -44,13 +45,15 @@ public class SOInjector {
     public static final int SALES_ORDER_WINDOW_ID = 143;
 
     public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
-    public static final String TEMP_CSV_FILEPATH = "/tmp/sas_generated_so.csv";
+    public static final String TEMP_CSV_FILEPATH = "/tmp/sas_generated_so_";
 
     protected static CLogger log = CLogger.getCLogger(SOInjector.class);
 
     private static int lastReturnedWindowNo = 1000;
     
     public String apiName(BizzySalesOrder bizzySo) {
+        String currentCsvFilepath = TEMP_CSV_FILEPATH + System.currentTimeMillis() + ".csv";
+        
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SOUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
@@ -65,10 +68,10 @@ public class SOInjector {
             splitBizzySo.orderLines = soLineGroup;
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
-            createCsv(sasSo, TEMP_CSV_FILEPATH);
+            createCsv(sasSo, currentCsvFilepath);
 
             // TODO introduce locks? What if two instances insert SO at the same time?
-            boolean injectSuccess = injectSalesOrder(TEMP_CSV_FILEPATH, sasSo.documentNo);
+            boolean injectSuccess = injectSalesOrder(currentCsvFilepath, sasSo.documentNo);
 
             if (injectSuccess) {
                 insertedDocNums.add(sasSo.documentNo);
