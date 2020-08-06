@@ -3,6 +3,7 @@ package com.sahabatabadi.api.salesorder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,9 @@ import org.compiere.util.Env;
 
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.io.CsvMapReader;
 import org.supercsv.io.CsvMapWriter;
+import org.supercsv.io.ICsvMapReader;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
@@ -63,14 +66,13 @@ public class SOInjector {
         ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
         for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
             String currentCsvFilepath = TEMP_CSV_FILEPATH + System.currentTimeMillis() + ".csv";
-            
+
             BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
             splitBizzySo.orderLines = soLineGroup;
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
             createCsv(sasSo, currentCsvFilepath);
 
-            // TODO introduce locks? What if two instances insert SO at the same time?
             boolean injectSuccess = injectSalesOrder(currentCsvFilepath, sasSo.documentNo);
 
             if (injectSuccess) {
@@ -252,14 +254,54 @@ public class SOInjector {
             File outFile = importer.fileImport(headerTab, childs, m_file_istream, charset, iMode);
             // TODO refactor the importer
 
+            if (outFile.getName().endsWith("err.csv")) {
+                return false;
+            }
+
+            if (checkLogCsvHasError(outFile)) {
+                return false;
+            }
+
             if (log.isLoggable(Level.INFO)) 
                 log.info(PLUGIN_PREFIX + "The document number is: " + documentNo);
 
-            // TODO if it's error, return false;
             return true;
         } catch (FileNotFoundException e) {
             log.severe(PLUGIN_PREFIX + "File not found!");
             return false;
+        }
+    }
+
+    private boolean checkLogCsvHasError(File outCsv) {
+        ICsvMapReader mapReader = null;
+        try {
+            mapReader = new CsvMapReader(new FileReader(outCsv), CsvPreference.STANDARD_PREFERENCE);
+
+            // the header columns are used as the keys to the Map
+            final String[] header = mapReader.getHeader(true);
+            final CellProcessor[] processors = new CellProcessor[header.length];
+            for (int i = 0; i < processors.length; i++) {
+                processors[i] = null;
+            }
+
+            boolean hasError = false;
+            Map<String, Object> customerMap;
+            while ((customerMap = mapReader.read(header, processors)) != null) {
+                String rowLog = (String) customerMap.get("_LOG_");
+                if (!rowLog.startsWith("Inserted", rowLog.indexOf('>') + 3)) {
+                    if (log.isLoggable(Level.WARNING))
+                        log.warning(PLUGIN_PREFIX + "Inject Error: " + rowLog);
+                        
+                    hasError = true;
+                }
+            }
+
+            return hasError;
+
+        } finally {
+            if (mapReader != null) {
+                mapReader.close();
+            }
         }
     }
 
