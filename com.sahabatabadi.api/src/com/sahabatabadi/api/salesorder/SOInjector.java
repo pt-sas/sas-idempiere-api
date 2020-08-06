@@ -52,8 +52,6 @@ public class SOInjector {
     private static int lastReturnedWindowNo = 1000;
     
     public String apiName(BizzySalesOrder bizzySo) {
-        String currentCsvFilepath = TEMP_CSV_FILEPATH + System.currentTimeMillis() + ".csv";
-        
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SOUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
@@ -64,6 +62,8 @@ public class SOInjector {
 
         ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
         for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
+            String currentCsvFilepath = TEMP_CSV_FILEPATH + System.currentTimeMillis() + ".csv";
+            
             BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
             splitBizzySo.orderLines = soLineGroup;
 
