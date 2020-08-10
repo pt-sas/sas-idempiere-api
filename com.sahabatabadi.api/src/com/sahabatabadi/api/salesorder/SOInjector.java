@@ -82,7 +82,6 @@ public class SOInjector {
     }
 
     private ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
-        // TODO beware comparison of Double, maybe better to get discountListId
         HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
         for (int i = 0; i < bizzySoLines.length; i++) {
@@ -119,7 +118,6 @@ public class SOInjector {
     }
 
     private static void createCsv(SASSalesOrder sasSo, String filepath) {
-        // TODO add Invoice partner & BP contacts headers
         final String[] header = new String[] {
             "AD_Org_ID[Name]", 
             "DocumentNo/K", 
@@ -128,7 +126,9 @@ public class SOInjector {
             "DateOrdered", 
             "DatePromised", 
             "C_BPartner_ID[Value]", 
+            "Bill_BPartner_ID[Value]",
             "C_BPartner_Location_ID[Name]", 
+            "Bill_Location_ID[Name]",
             "M_Warehouse_ID[Value]", 
             "AD_OrgTrx_ID[Name]", 
             "C_OrderLine>Line", 
@@ -139,21 +139,23 @@ public class SOInjector {
         };
 
         final CellProcessor[] processors = new CellProcessor[] { 
-            new Optional(), // AD_Org_ID[Name]
-            new Optional(), // DocumentNo/K
-            new Optional(), // Description
-            new Optional(), // C_DocTypeTarget_ID[Name]
-            new Optional(), // DateOrdered
-            new Optional(), // DatePromised
-            new Optional(), // C_BPartner_ID[Value]
-            new Optional(), // C_BPartner_Location_ID[Name]
-            new Optional(), // M_Warehouse_ID[Value]
-            new Optional(), // AD_OrgTrx_ID[Name]
-            new Optional(), // C_OrderLine>Line
-            new Optional(), // C_OrderLine>M_Product_ID[Value]
-            new Optional(), // C_OrderLine>QtyEntered
-            new Optional(), // C_OrderLine>C_Order_ID[DocumentNo]/K
-            new Optional()  // C_OrderLine>DatePromised
+            new Optional(), // 0: AD_Org_ID[Name]
+            new Optional(), // 1: DocumentNo/K
+            new Optional(), // 2: Description
+            new Optional(), // 3: C_DocTypeTarget_ID[Name]
+            new Optional(), // 4: DateOrdered
+            new Optional(), // 5: DatePromised
+            new Optional(), // 6: C_BPartner_ID[Value]
+            new Optional(), // 7: Bill_BPartner_ID[Value]
+            new Optional(), // 8: C_BPartner_Location_ID[Name]
+            new Optional(), // 9: Bill_Location_ID[Name]
+            new Optional(), // 10: M_Warehouse_ID[Value]
+            new Optional(), // 11: AD_OrgTrx_ID[Name]
+            new Optional(), // 12: C_OrderLine>Line
+            new Optional(), // 13: C_OrderLine>M_Product_ID[Value]
+            new Optional(), // 14: C_OrderLine>QtyEntered
+            new Optional(), // 15: C_OrderLine>C_Order_ID[DocumentNo]/K
+            new Optional()  // 16: C_OrderLine>DatePromised
         };
 
         List<HashMap<String, Object>> mapArr = new ArrayList<>();
@@ -167,18 +169,20 @@ public class SOInjector {
         headerMap.put(header[4], sasSo.dateOrdered);
         headerMap.put(header[5], sasSo.datePromised);
         headerMap.put(header[6], sasSo.bpHoldingId);
-        headerMap.put(header[7], sasSo.bpLocation);
-        headerMap.put(header[8], sasSo.warehouse);
-        headerMap.put(header[9], sasSo.orgTrx);
+        headerMap.put(header[7], sasSo.invoiceBpHoldingId);
+        headerMap.put(header[8], sasSo.bpLocation);
+        headerMap.put(header[9], sasSo.invoiceBpLocation);
+        headerMap.put(header[10], sasSo.warehouse);
+        headerMap.put(header[11], sasSo.orgTrx);
         mapArr.add(headerMap);
 
         for (SASSalesOrderLine line : sasSo.orderLines) {
             final HashMap<String, Object> lineMap = new HashMap<String, Object>();
-            lineMap.put(header[10], line.lineNo);
-            lineMap.put(header[11], line.productId);
-            lineMap.put(header[12], line.quantity);
-            lineMap.put(header[13], line.documentNo);
-            lineMap.put(header[14], line.datePromised);
+            lineMap.put(header[12], line.lineNo);
+            lineMap.put(header[13], line.productId);
+            lineMap.put(header[14], line.quantity);
+            lineMap.put(header[15], line.documentNo);
+            lineMap.put(header[16], line.datePromised);
             mapArr.add(lineMap);
         }
 

@@ -15,7 +15,7 @@ public class SASSalesOrder {
 	public static final int BP_ID_LENGTH = 5;
 
     public String org;                  // AD_Org_ID[Name]: Sunter
-    public String documentNo;           // DocumentNo: ATR1-OPN-1001-0018
+    public String documentNo;           // DocumentNo/K: ATR1-OPN-1001-0018
     public String description;          // Description: PK 8% + PROMNAS
     public String docType;              // C_DocTypeTarget_ID[Name]: OPN (Order Penjualan Non tax)
     public String dateOrdered;          // DateOrdered: 2020-01-02
@@ -24,8 +24,8 @@ public class SASSalesOrder {
     public String invoiceBpHoldingId;   // Bill_BPartner_ID[Value]
     public String bpLocation;           // C_BPartner_Location_[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
     public String invoiceBpLocation;    // Bill_Location_ID[Name]: MEGAH SARI- Rawasari [ Jl. Rawasari Selatan No. 10]
-    public String bpContact;            // AD_User_ID[Name]: Yudi Bunadi Tjhie
-    public String invoiceBpContact;     // Bill_User_ID[Name]: Yudi Bunadi Tjhie
+    // public String bpContact;            // AD_User_ID[Name]: Yudi Bunadi Tjhie
+    // public String invoiceBpContact;     // Bill_User_ID[Name]: Yudi Bunadi Tjhie
     // public char deliveryRule;           // DeliveryRule
     // public char priorityRule;           // PriorityRule
     public String warehouse;            // M_Warehouse_ID[Value]: Sunter F1-2
@@ -50,16 +50,17 @@ public class SASSalesOrder {
         this.org = SOUtils.orgMap.get(bizzySo.soff_code);
         this.description = bizzySo.description;
         this.dateOrdered = formatter.format(bizzySo.dateOrdered);
+        this.datePromised = this.dateOrdered;
         this.bpHoldingId = SOUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
+        this.invoiceBpHoldingId = this.bpHoldingId;
         this.bpLocation = bizzySo.bpLocationName;
+        this.invoiceBpLocation = this.bpLocation;
+        this.warehouse = SOUtils.warehouseMap.get(bizzySo.soff_code);
 
         StringBuilder sb = new StringBuilder("O");
         sb.append(bizzySo.orderSource);
         sb.append(SOUtils.getBPLocationIsTax(bizzySo.bpLocationName) ? "T" : "N");
         this.docType = SOUtils.docTypeMap.get(sb.toString());
-
-        this.datePromised = this.dateOrdered;
-        this.warehouse = SOUtils.warehouseMap.get(bizzySo.soff_code);
 
         String principal = bizzySo.orderLines[0].principalId;
         this.orgTrx = SOUtils.getOrgTrx(this.bpHoldingId, principal);
