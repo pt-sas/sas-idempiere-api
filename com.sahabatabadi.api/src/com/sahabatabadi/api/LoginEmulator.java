@@ -28,6 +28,7 @@ public class LoginEmulator {
         KeyNamePair[] clientsKNPairs = login.getClients(userId, userPassword);
 
         // org.adempiere.webui.panel.RolePanel::init()
+        Env.setContext(Env.getCtx(), "#AD_Client_ID", clientsKNPairs[0].getID());
         MUser user = MUser.get(Env.getCtx(), userId);
         Properties preference = loadPreference(user.get_ID());
 
