@@ -10,17 +10,58 @@ import java.util.logging.Level;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
+/**
+ * Utility class to query the iDempiere database and store simple mappings.
+ * 
+ * @author Nicholas Alexander Limit
+ * @version 1.0
+ */
 public class SOUtils {
     protected static CLogger log = CLogger.getCLogger(SOUtils.class);
 
+    /**
+     * Mapping between Org character (A/B/C/D/M) and Org name.
+     */
     public static final Map<Character, String> orgMap;
+
+    /**
+     * Mapping between Org name and {@code ad_org_id} field in iDempiere's
+     * {@code AD_Org} table.
+     */
     public static final Map<String, Integer> orgIdMap;
+
+    /**
+     * Mapping between an Org Trx's full name and short name (e.g. "TR1", "PAN")
+     */
     public static final Map<String, String> orgTrxMap;
+
+    /**
+     * Mapping between an Org Trx's short name (e.g. "TR1", "PAN") and
+     * {@code ad_org_id} field in iDempiere's {@code AD_Org} table.
+     */
     public static final Map<String, Integer> orgTrxIdMap;
+
+    /**
+     * Mapping between Org character (A/B/C/D/M) and the Org's default warehouse
+     * name.
+     */
     public static final Map<Character, String> warehouseMap;
+
+    /**
+     * Mapping between document type's 3-letter initial with document type's full
+     * name
+     */
     public static final Map<String, String> docTypeMap;
+
+    /**
+     * Mapping between document type's full name with {@code c_doctype_id} field in
+     * iDempiere's {@code C_DocType} table.
+     */
     public static final Map<String, Integer> docTypeIdMap;
 
+    /**
+     * Initializes the mappings.
+     */
     static {
         HashMap<Character, String> tempOrgMap = new HashMap<>();
         tempOrgMap.put('A', "Sunter");
@@ -81,7 +122,20 @@ public class SOUtils {
         docTypeIdMap = Collections.unmodifiableMap(tempDocTypeIdMap);
     }
 
-
+    /**
+     * Queries the database for an Org Trx given a BP number and principal.
+     * 
+     * Philips/Signify has different OrgTrx-es for each region, while other
+     * principals only have one OrgTrx.
+     * 
+     * @param bpHoldingId Five-digit BP number. For example, for "PIONEER ELEKTRIC",
+     *                    the value is {@code 03806}.
+     * @param principal   The full principal name. Has to match the entries in
+     *                    iDempiere's {@code M_Product} table. Example:
+     *                    {@code "Philips"}.
+     * @return Full Org Trx name of the principal, from the {@code name} field in
+     *         the {@code AD_Org table}.
+     */
     public static String getOrgTrx(String bpHoldingId, String principal) {
         if (principal.equals("Philips")) {
             String retValue = null;
@@ -115,6 +169,16 @@ public class SOUtils {
         }
     }
 
+    /**
+     * Queries the database the tax status of the specified BP location.
+     * 
+     * @param bpLocation Exact name of the business partner's (BP) or customer's
+     *                   location. Value has to exactly match the name in
+     *                   iDempiere's {@code C_BPartner_Location} table. Example:
+     *                   {@code "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt.
+     *                   Dasar Blok C No. 3-5]"}
+     * @return True if the BP location is a tax location, false otherwise.
+     */
     public static boolean getBPLocationIsTax(String bpLocation) {
         String retValue = null;
         String isTaxQuery = 
@@ -150,6 +214,15 @@ public class SOUtils {
         }
     }
 
+    /**
+     * Queries the database for the product's principal/brand given a product ID.
+     * 
+     * @param productId Product ID of the product being queried. Has to match the
+     *                  entries in iDempiere's {@code M_Product} table. Example:
+     *                  {@code "AB0301485"}.
+     * @return Full name of the product's principal/brand, from the {@code name}
+     *         field in the {@code M_Product_Category} table.
+     */
     public static String getProductPrincipal(String productId) {
         String principal = null;
         String principalQuery = 
@@ -176,6 +249,21 @@ public class SOUtils {
         return principal;
     }
 
+    /**
+     * Queries the database for the product's discount given the product ID, the BP
+     * number, and the product principal.
+     * 
+     * @param productId   Product ID of the product being queried. Has to match the
+     *                    entries in iDempiere's {@code M_Product} table. Example:
+     *                    {@code "AB0301485"}.
+     * @param bpHoldingNo Five-digit BP number. For example, for "PIONEER ELEKTRIC",
+     *                    the value is {@code 03806}.
+     * @param principal   The full principal name. Has to match the entries in
+     *                    iDempiere's {@code M_Product} table. Example:
+     *                    {@code "Philips"}.
+     * @return The product's discount list ID, from the {@code sas_discountlist_id}
+     *         field in the {@code M_DiscountSchemaBreak} table.
+     */
     public static int getProductDiscount(String productId, int bpHoldingNo, String principal) {
         int discount = -1;
         String discountQuery = 
@@ -214,6 +302,14 @@ public class SOUtils {
         return discount;
     }
 
+    /**
+     * Prepends zeros to the specified integer until the number reaches the
+     * specified length.
+     * 
+     * @param no          The integer / number to be prepended with zeros.
+     * @param totalLength The desired length of the number.
+     * @return The number prepended with zeros.
+     */
     public static String prependZeros(int no, int totalLength) {
         String noString = Integer.toString(no);
         StringBuilder sb = new StringBuilder();
