@@ -8,13 +8,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -295,14 +293,14 @@ public class SOInjector {
                     hasError = true;
                 }
             }
+            
+            mapReader.close();
 
             return hasError;
-
-        } finally {
-            if (mapReader != null) {
-                mapReader.close();
-            }
-        }
+        } catch (IOException e) {
+			e.printStackTrace();
+			return true;
+		}
     }
 
     class GridTabHolder implements DataStatusListener {
