@@ -9,6 +9,11 @@ import org.osgi.framework.BundleContext;
 
 import com.sahabatabadi.api.rmi.RMIServer;
 
+/**
+ * Custom Activator class for SAS iDempiere API plugin
+ * 
+ * @author Nicholas Alexander Limit
+ */
 public class SASApiActivator implements BundleActivator {
     private static BundleContext context;
     private static RMIServer rmiServer;
@@ -19,11 +24,10 @@ public class SASApiActivator implements BundleActivator {
         return context;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Starts the SAS iDempiere API plugin and requisite services.
      * 
-     * @see
-     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+     * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
      */
     public void start(BundleContext bundleContext) throws Exception {
         if (log.isLoggable(Level.INFO))
@@ -40,10 +44,10 @@ public class SASApiActivator implements BundleActivator {
     }
 
     /*
-     * (non-Javadoc)
+     * Stops the SAS iDempiere API plugin and requisite services, 
+     * and then cleans up associated resources.
      * 
-     * @see
-     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
      */
     public void stop(BundleContext bundleContext) throws Exception {
         if (log.isLoggable(Level.INFO))
