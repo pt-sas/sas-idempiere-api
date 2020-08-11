@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: SAS iDempiere API
 Bundle-SymbolicName: com.sahabatabadi.api;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: com.sahabatabadi.api.Activator
+Bundle-Activator: com.sahabatabadi.api.SASApiActivator
 Bundle-Vendor: Sahabat Abadi Sejahtera
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Automatic-Module-Name: com.sahabatabadi.api

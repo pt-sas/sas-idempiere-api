@@ -9,11 +9,11 @@ import org.osgi.framework.BundleContext;
 
 import com.sahabatabadi.api.rmi.RMIServer;
 
-public class Activator implements BundleActivator {
+public class SASApiActivator implements BundleActivator {
     private static BundleContext context;
     private static RMIServer rmiServer;
 
-    protected static CLogger log = CLogger.getCLogger(Activator.class);
+    protected CLogger log = CLogger.getCLogger(getClass());
 
     static BundleContext getContext() {
         return context;
@@ -28,7 +28,7 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) throws Exception {
         if (log.isLoggable(Level.INFO))
             log.info("SAS iDempiere API is starting");
-        Activator.context = bundleContext;
+        SASApiActivator.context = bundleContext;
 
         LoginEmulator.emulateLogin();
 
@@ -48,7 +48,7 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext bundleContext) throws Exception {
         if (log.isLoggable(Level.INFO))
             log.info("SAS iDempiere API is stopping");
-        Activator.context = null;
+        SASApiActivator.context = null;
         
         if (rmiServer != null) {
             rmiServer.stopRmiServer();
