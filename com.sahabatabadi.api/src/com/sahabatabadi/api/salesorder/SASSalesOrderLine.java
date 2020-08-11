@@ -1,21 +1,51 @@
 package com.sahabatabadi.api.salesorder;
 
+/**
+ * Class to represent required information to inject a sales order line into SAS
+ * iDempiere. Has methods to convert external SO line classes to SAS SO line.
+ * Avoid editing fields manually; rather, use the constructors to convert
+ * external SO line into SAS SO line.
+ */
 public class SASSalesOrderLine {
-	private SASSalesOrder header;
+    /**
+     * Line number of the SO. Typically incremented by
+     * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between
+     * different SO lines.
+     */
+    public int lineNo;
+    
+    /**
+     * Product ID of the product being ordered. Has to match the entries in the
+     * {@code value} field in iDempiere's {@code M_Product} table.
+     */
+    public String productId;
 
-    public int lineNo;              // Line: 10
-    public String productId;        // M_Product_ID[Value]: AB0301485
-    public int quantity;            // QtyEntered: 19
-    // public String uom;              // C_UOM_ID[Name]: PCS
-    // public String tax;              // C_Tax_ID[Name]: PPN
-    // public int freightAmt;          // FreightAmt: 0
-    // public char processed;          // Processed: Y
-    public String documentNo;       // C_Order_ID[DocumentNo]: ATR1-OPN-1001-0018
-    public String datePromised;     // DatePromised: 2020-01-02
-    // public int setInstance;         // M_AttributeSetInstance_ID: 0
-    // public int discountListId;      // SAS_DiscountList_ID[Value]: 500266
-    // public char isAffectPRomo;      // IsAffectPromo: N
+    /**
+     * Quantity of the product being ordered.
+     */
+    public int quantity;
 
+    /**
+     * Has to exactly match {@link SASSalesOrder#documentNo} in the header.
+     */
+    public String documentNo;
+
+    /**
+     * Has to exactly match {@link SASSalesOrder#datePromised} in the header.
+     */
+    public String datePromised;
+
+    /**
+     * SO header associated with this SO line.
+     */
+    private SASSalesOrder header;
+
+    /**
+     * Default constructor.
+     * 
+     * @param orderLine Bizzy SO line object to convert to SAS SO line object.
+     * @param header    SAS SO header object associated with this SO line.
+     */
     public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) {
         /* parsing values from Bizzy SO Line */
         this.header = header;
