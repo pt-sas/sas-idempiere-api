@@ -152,7 +152,7 @@ public class SASSalesOrder {
         this.orgTrx = SOUtils.getOrgTrx(this.bpHoldingId, principal);
 
         // org.compiere.model.PO#saveNew()
-        PO po = getMOrderPO(SOUtils.orgIdMap.get(this.org), SOUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
+        PO po = SOUtils.getMOrderPO(SOUtils.orgIdMap.get(this.org), SOUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
         this.documentNo = DB.getDocumentNo(SOUtils.docTypeIdMap.get(this.docType), null, false, po);
 
         this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
@@ -170,53 +170,5 @@ public class SASSalesOrder {
     protected int getNextLineNumber() {
         this.latestLineNumber += LINE_NUMBER_INCREMENT;
         return this.latestLineNumber;
-    }
-
-    /**
-     * Helper method to return a Sales Order PO object to be used to generate a new
-     * document number.
-     * 
-     * @param orgId       Org ID of the current SO header. Has to match entries in
-     *                    the {@code ad_org_id} field in iDempiere's {@code AD_Org}
-     *                    table, where the {@code isorgtrxdim} field is {@code 'N'}.
-     * @param orgTrxId    Org Trx ID of the current SO header. Has to match entries
-     *                    in the {@code ad_org_id} field in iDempiere's
-     *                    {@code AD_Org} table, where the {@code isorgtrxdim} field
-     *                    is {@code 'Y'}.
-     * @param dateOrdered Date the SO is created, typically the current system
-     *                    clock.
-     * @return a Sales Order PO object containing the arguments.
-     * 
-     * @see org.compiere.model.MOrder
-     * @see org.compiere.model.GridTable#dataSavePO(int)
-     * @see org.compiere.model.MTable#getPO(int, String)
-     */
-    private PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
-        // org.compiere.model.GridTable#dataSavePO(int)
-        int Record_ID = 0; // 0 represents new PO
-        String trxName = null; 
-
-        // org.compiere.model.MTable#getPO(int, String)
-        String tableName = "C_Order";
-        PO po = null;
-
-        List<IModelFactory> factoryList = Service.locator().list(IModelFactory.class).getServices();
-        if (factoryList != null) {
-            for (IModelFactory factory : factoryList) {
-                po = factory.getPO(tableName, Record_ID, trxName);
-                if (po != null) {
-                    if (po.get_ID() != Record_ID && Record_ID > 0)
-                        po = null;
-                    else
-                        break;
-                }
-            }
-        }
-
-        po.set_ValueNoCheck("AD_Org_ID", orgId);
-        po.set_ValueNoCheck("AD_OrgTrx_ID", orgTrxId);
-        po.set_ValueNoCheck("DateOrdered", new Timestamp(dateOrdered.getTime()));
-
-        return po;
     }
 }
