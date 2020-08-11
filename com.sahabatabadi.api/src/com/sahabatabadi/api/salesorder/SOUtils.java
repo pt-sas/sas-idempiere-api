@@ -2,11 +2,17 @@ package com.sahabatabadi.api.salesorder;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.adempiere.base.IModelFactory;
+import org.adempiere.base.Service;
+import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
@@ -339,7 +345,7 @@ public class SOUtils {
      * @see org.compiere.model.GridTable#dataSavePO(int)
      * @see org.compiere.model.MTable#getPO(int, String)
      */
-    private static PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
+    public static PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
         // org.compiere.model.GridTable#dataSavePO(int)
         int Record_ID = 0; // 0 represents new PO
         String trxName = null;

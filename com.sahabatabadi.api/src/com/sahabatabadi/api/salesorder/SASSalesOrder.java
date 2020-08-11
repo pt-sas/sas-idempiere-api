@@ -1,12 +1,7 @@
 package com.sahabatabadi.api.salesorder;
 
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
-import org.adempiere.base.IModelFactory;
-import org.adempiere.base.Service;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
