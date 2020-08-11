@@ -14,6 +14,9 @@ import org.compiere.util.Util;
 
 /**
  * Class with static methods to emulate iDempiere login
+ * 
+ * @author Nicholas Alexander Limit
+ * @version 1.0
  */
 public class LoginEmulator {
 	public static final String P_ROLE = "Role";

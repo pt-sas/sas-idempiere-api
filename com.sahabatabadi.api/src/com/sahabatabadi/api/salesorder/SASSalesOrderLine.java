@@ -5,6 +5,9 @@ package com.sahabatabadi.api.salesorder;
  * iDempiere. Has methods to convert external SO line classes to SAS SO line.
  * Avoid editing fields manually; rather, use the constructors to convert
  * external SO line into SAS SO line.
+ * 
+ * @author Nicholas Alexander Limit
+ * @version 1.0
  */
 public class SASSalesOrderLine {
     /**
