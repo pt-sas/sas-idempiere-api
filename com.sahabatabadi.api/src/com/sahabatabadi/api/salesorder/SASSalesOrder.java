@@ -155,9 +155,9 @@ public class SASSalesOrder {
         PO po = getMOrderPO(SOUtils.orgIdMap.get(this.org), SOUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
         this.documentNo = DB.getDocumentNo(SOUtils.docTypeIdMap.get(this.docType), null, false, po);
 
-        orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
+        this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
-            orderLines[i] = new SASSalesOrderLine(bizzySo.orderLines[i], this);
+            this.orderLines[i] = new SASSalesOrderLine(bizzySo.orderLines[i], this);
         }
     }
 
@@ -168,8 +168,8 @@ public class SASSalesOrder {
      * @return the line number of the next SAS SO line.
      */
     protected int getNextLineNumber() {
-        latestLineNumber += LINE_NUMBER_INCREMENT;
-        return latestLineNumber;
+        this.latestLineNumber += LINE_NUMBER_INCREMENT;
+        return this.latestLineNumber;
     }
 
     /**
@@ -193,7 +193,7 @@ public class SASSalesOrder {
      */
     private PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
         // org.compiere.model.GridTable#dataSavePO(int)
-        int Record_ID = 0; // new PO
+        int Record_ID = 0; // 0 represents new PO
         String trxName = null; 
 
         // org.compiere.model.MTable#getPO(int, String)
