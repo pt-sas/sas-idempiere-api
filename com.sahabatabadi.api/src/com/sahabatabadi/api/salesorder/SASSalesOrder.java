@@ -68,14 +68,14 @@ public class SASSalesOrder {
      * Five-digit BP code. Has to match entries in the {@code value} field in
      * iDempiere's {@code C_BPartner} table.
      */
-    public String bpHoldingId;
+    public String bpCode;
 
     /**
      * Five-digit BP code to be invoiced. Typically has the same value as
-     * {@link #bpHoldingId}. Has to match entries in the {@code value} field in
+     * {@link #bpCode}. Has to match entries in the {@code value} field in
      * iDempiere's {@code C_BPartner} table.
      */
-    public String invoiceBpHoldingId;
+    public String invoiceBpCode;
 
     /**
      * Full name of the BP location. Has to match entries in the {@code name} field
@@ -137,8 +137,8 @@ public class SASSalesOrder {
         this.description = bizzySo.description;
         this.dateOrdered = formatter.format(bizzySo.dateOrdered);
         this.datePromised = this.dateOrdered;
-        this.bpHoldingId = SOUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
-        this.invoiceBpHoldingId = this.bpHoldingId;
+        this.bpCode = SOUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
+        this.invoiceBpCode = this.bpCode;
         this.bpLocation = bizzySo.bpLocationName;
         this.invoiceBpLocation = this.bpLocation;
         this.warehouse = SOUtils.warehouseMap.get(bizzySo.soff_code);
@@ -149,7 +149,7 @@ public class SASSalesOrder {
         this.docType = SOUtils.docTypeMap.get(sb.toString());
 
         String principal = bizzySo.orderLines[0].principalId;
-        this.orgTrx = SOUtils.getOrgTrx(this.bpHoldingId, principal);
+        this.orgTrx = SOUtils.getOrgTrx(this.bpCode, principal);
 
         // org.compiere.model.PO#saveNew()
         PO po = SOUtils.getMOrderPO(SOUtils.orgIdMap.get(this.org), SOUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);

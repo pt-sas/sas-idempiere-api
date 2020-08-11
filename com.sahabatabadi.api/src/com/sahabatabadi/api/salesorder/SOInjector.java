@@ -168,8 +168,8 @@ public class SOInjector {
         headerMap.put(header[3], sasSo.docType);
         headerMap.put(header[4], sasSo.dateOrdered);
         headerMap.put(header[5], sasSo.datePromised);
-        headerMap.put(header[6], sasSo.bpHoldingId);
-        headerMap.put(header[7], sasSo.invoiceBpHoldingId);
+        headerMap.put(header[6], sasSo.bpCode);
+        headerMap.put(header[7], sasSo.invoiceBpCode);
         headerMap.put(header[8], sasSo.bpLocation);
         headerMap.put(header[9], sasSo.invoiceBpLocation);
         headerMap.put(header[10], sasSo.warehouse);
