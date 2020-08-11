@@ -13,6 +13,7 @@ import com.sahabatabadi.api.rmi.RMIServer;
  * Custom Activator class for SAS iDempiere API plugin
  * 
  * @author Nicholas Alexander Limit
+ * @version 1.0
  */
 public class SASApiActivator implements BundleActivator {
     private static BundleContext context;

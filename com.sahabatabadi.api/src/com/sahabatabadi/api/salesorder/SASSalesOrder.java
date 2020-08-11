@@ -11,6 +11,9 @@ import org.compiere.util.DB;
  * SAS iDempiere. Has methods to convert external SO classes to SAS SO. Avoid
  * editing fields manually; rather, use the constructors to convert external SO
  * into SAS SO.
+ * 
+ * @author Nicholas Alexander Limit
+ * @version 1.0
  */
 public class SASSalesOrder {
     /**
