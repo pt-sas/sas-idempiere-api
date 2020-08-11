@@ -17,20 +17,21 @@ public class LoginEmulator {
     public static final String P_CLIENT = "Client";
     public static final String P_ORG = "Organization";
     public static final String P_WAREHOUSE = "Warehouse";
-    private static final String[] PROPERTIES = new String[] {P_ROLE, P_CLIENT, P_ORG, P_WAREHOUSE};
-    
-    public static void emulateLogin() {
+    public static final String[] PROPERTIES = new String[] {P_ROLE, P_CLIENT, P_ORG, P_WAREHOUSE};
+
+    public static final String USER_ID = "Api-01";
+    public static final String USER_PASSWORD = "12345";
+
+    public static boolean emulateLogin() {
         // org.adempiere.webui.panel.LoginPanel::validateLogin()
         Login login = new Login(Env.getCtx());
-        String userId = "Api-01";
-        String userPassword = "12345";
 
-        KeyNamePair[] clientsKNPairs = login.getClients(userId, userPassword);
+        KeyNamePair[] clientsKNPairs = login.getClients(USER_ID, USER_PASSWORD);
 
         // org.adempiere.webui.panel.RolePanel::init()
         Env.setContext(Env.getCtx(), "#AD_Client_ID", clientsKNPairs[0].getID());
-        MUser user = MUser.get(Env.getCtx(), userId);
-        Properties preference = loadPreference(user.get_ID());
+        MUser user = MUser.get(Env.getCtx(), USER_ID);
+        Properties preference = loadUserPreference(user.get_ID());
 
         // org.adempiere.webui.panel.RolePanel::initComponents()
         KeyNamePair clientKNPair = null;
@@ -52,7 +53,7 @@ public class LoginEmulator {
 
         // org.adempiere.webui.panel.RolePanel::updateRoleList()
         KeyNamePair roleKNPair = null;
-        KeyNamePair[] roleKNPairs = login.getRoles(userId, clientKNPair);
+        KeyNamePair[] roleKNPairs = login.getRoles(USER_ID, clientKNPair);
         String initDefaultRole = preference.getProperty(P_ROLE, "");
         for (int i = 0; i < roleKNPairs.length; i++) {
             if (roleKNPairs[i].getID().equals(initDefaultRole)) {
@@ -92,17 +93,18 @@ public class LoginEmulator {
 
         if (!Util.isEmpty(msg)) {
             Env.getCtx().clear();
-            return;
+            return false;
         }
+
+        return true;
     }
 
-    public static Properties loadPreference(int userId) {
+    public static Properties loadUserPreference(int userId) {
         // org.adempiere.webui.util.UserPreference::loadPreference(int)
         Properties props = new Properties();
         
-        Query query = new Query(Env.getCtx(), I_AD_Preference.Table_Name,
-                "NVL(AD_User_ID,0) = ? AND Attribute = ? AND AD_Window_ID Is NULL AND AD_Process_ID IS NULL AND PreferenceFor = 'W'",
-                null);
+        String propQueryStr = "NVL(AD_User_ID,0) = ? AND Attribute = ? AND AD_Window_ID Is NULL AND AD_Process_ID IS NULL AND PreferenceFor = 'W'";
+        Query query = new Query(Env.getCtx(), I_AD_Preference.Table_Name, propQueryStr, null);
 
         for (int i = 0; i < PROPERTIES.length; i++) {
             String attribute = PROPERTIES[i];
