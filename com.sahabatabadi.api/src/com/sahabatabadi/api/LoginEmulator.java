@@ -12,6 +12,9 @@ import org.compiere.util.KeyNamePair;
 import org.compiere.util.Login;
 import org.compiere.util.Util;
 
+/**
+ * Class with static methods to emulate iDempiere login
+ */
 public class LoginEmulator {
 	public static final String P_ROLE = "Role";
     public static final String P_CLIENT = "Client";
@@ -22,6 +25,11 @@ public class LoginEmulator {
     public static final String USER_ID = "Api-01";
     public static final String USER_PASSWORD = "12345";
 
+    /**
+     * Emulates login to iDempiere with username {@value #USER_ID} and password
+     * {@value #USER_PASSWORD}. Client, role, org, and warehouse follows the value
+     * set in the "User Preference" window in iDempiere.
+     */
     public static boolean emulateLogin() {
         // org.adempiere.webui.panel.LoginPanel::validateLogin()
         Login login = new Login(Env.getCtx());
@@ -99,6 +107,12 @@ public class LoginEmulator {
         return true;
     }
 
+    /**
+     * Loads the login preferences from the User Preference window in iDempiere
+     * 
+     * @param userId User ID of the user whose preference should be loaded.
+     * @return User Preference of the user with the specified user ID.
+     */
     public static Properties loadUserPreference(int userId) {
         // org.adempiere.webui.util.UserPreference::loadPreference(int)
         Properties props = new Properties();
