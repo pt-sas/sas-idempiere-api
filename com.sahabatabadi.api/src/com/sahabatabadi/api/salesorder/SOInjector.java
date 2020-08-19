@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,9 +27,16 @@ import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridWindow;
 import org.compiere.model.GridWindowVO;
+import org.compiere.model.MColumn;
 import org.compiere.model.MLookup;
+import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.util.CLogger;
+import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.compiere.util.Msg;
+import org.compiere.util.Trx;
+import org.compiere.util.ValueNamePair;
 
 public class SOInjector {
 	public static final String IMPORT_MODE_MERGE = "M";
@@ -111,7 +119,7 @@ public class SOInjector {
         return SOInjector.lastReturnedWindowNo;
     }
 
-    private boolean injectSalesOrder(BizzySalesOrder bizzySo, String documentNo) {
+    private boolean injectSalesOrder(SASSalesOrder bizzySo, String documentNo) {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         Charset charset = Charset.forName("UTF-8");
 
@@ -150,27 +158,13 @@ public class SOInjector {
             childs.add(gTab);
         }
 
-        try {
-            // TODO replace with refactored importer
-            IGridTabImporter importer = new GridTabCSVImporter();
-            File outFile = importer.fileImport(headerTab, childs, bizzySo);
+        // TODO replace with refactored importer
+        importSo(headerTab, childs, bizzySo);
 
-            if (outFile.getName().endsWith("err.csv")) {
-                return false;
-            }
+        if (log.isLoggable(Level.INFO)) 
+            log.info(PLUGIN_PREFIX + "The document number is: " + documentNo);
 
-            if (checkLogCsvHasError(outFile)) {
-                return false;
-            }
-
-            if (log.isLoggable(Level.INFO)) 
-                log.info(PLUGIN_PREFIX + "The document number is: " + documentNo);
-
-            return true;
-        } catch (FileNotFoundException e) {
-            log.severe(PLUGIN_PREFIX + "File not found!");
-            return false;
-        }
+        return true;
     }
 
     class GridTabHolder implements DataStatusListener {
@@ -220,7 +214,7 @@ public class SOInjector {
 
     private static final String ORDER_LINE_TABLE_NAME = "C_OrderLine";
 
-    private void importSo(GridTab headerTab, List<GridTab> childs, BizzySalesOrder bizzySo) {
+    private void importSo(GridTab headerTab, List<GridTab> childs, SASSalesOrder sasSo) {
         try {
             isError = false;
             trx = null;
@@ -231,7 +225,7 @@ public class SOInjector {
             manageMasterTrx(headerTab);
             createTrx(headerTab);
 
-            processRecord(headerTab, false, childs, bizzySo); // isDetail = false
+            processRecord(headerTab, false, childs, sasSo); // isDetail = false
 
             // process detail
             GridTab orderLineTab = null;
@@ -242,12 +236,12 @@ public class SOInjector {
                 }
             }
 
-            for (BizzySalesOrderLine orderLine : bizzySo.orderLines) {
+            for (SASSalesOrderLine orderLine : sasSo.orderLines) {
                 processRecord(orderLineTab, true, childs, orderLine);
             }
 
             manageMasterTrx(headerTab);
-        } catch (IOException | Exception ex) {
+        } catch (Exception ex) {
             // throw new AdempiereException(ex); // TODO print error logs 
         } finally {
             headerTab.getTableModel().setImportingMode(false, null);
@@ -272,71 +266,45 @@ public class SOInjector {
             }
 
             boolean dataNewSuccess = gridTab.dataNew(false);
-            if (dataNewSuccess) { // SASFLAG creating new record
-                gridTab.navigateCurrent();
-
-                if (!isDetail) {
-                    for (GridTab child : childs) {
-                        child.query(false);
-                    }
+            if (!dataNewSuccess) { // SASFLAG creating new record
+            	logMsg = "[" + gridTab.getName() + "]" + "- Was not able to create a new record!";
+            	throw new Exception();   
+            }
+            
+            gridTab.navigateCurrent();
+            if (!isDetail) {
+                for (GridTab child : childs) {
+                    child.query(false);
                 }
-
-                logMsg = processRow(gridTab, masterRecord, trx, so);
-            } else {
-                logMsg = "[" + gridTab.getName() + "]" + "- Was not able to create a new record!";
             }
 
+            logMsg = processRow(gridTab, masterRecord, trx, so);
             if (logMsg != null) {
-                isError = true;
+                throw new Exception();
             }
 
-            if (!isError) {
-                boolean dataSaveSuccess = gridTab.dataSave(false);
-                if (dataSaveSuccess) {
-                    PO po = gridTab.getTableModel().getPO(gridTab.getCurrentRow());
+            boolean dataSaveSuccess = gridTab.dataSave(false);
+            if (!dataSaveSuccess) {
+            	ValueNamePair ppE = CLogger.retrieveWarning();
+            	if (ppE == null)
+            		ppE = CLogger.retrieveError();
 
-                    // Keep master record for details validation
-                    if (!isDetail)
-                        masterRecord = po;
+            	String info = (ppE != null) ? info = ppE.getName() : "";
+            	logMsg = Msg.getMsg(Env.getCtx(), "Error") + " " + Msg.getMsg(Env.getCtx(), "SaveError") + " (" + info + ")";
 
-                    logMsg = Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString();
-                } else {
-                    ValueNamePair ppE = CLogger.retrieveWarning();
-                    if (ppE == null)
-                        ppE = CLogger.retrieveError();
-
-                    String info = (ppE != null) ? info = ppE.getName() : "";
-                    logMsg = Msg.getMsg(Env.getCtx(), "Error") + " " + Msg.getMsg(Env.getCtx(), "SaveError") + " (" + info + ")";
-
-                    gridTab.dataIgnore();
-
-                    // Problem in the master record
-                    if (!isDetail && masterRecord == null) {
-                        break;
-                    }
-
-                    // Problem in the detail record
-                    if (isDetail && masterRecord != null) {
-                        break;
-                    }
-                }
-
-            } else {
-                gridTab.dataIgnore();
-
-                // Problem in the master record
-                if (!isDetail && masterRecord == null) {
-                    break;
-                }
-
-                // Problem in the detail record
-                if (isDetail && masterRecord != null) {
-                    break;
-                }
+            	throw new Exception();
             }
+            
+            PO po = gridTab.getTableModel().getPO(gridTab.getCurrentRow());
+
+        	// Keep master record for details validation
+        	if (!isDetail) {
+        		masterRecord = po;
+        	}
+
+        	logMsg = Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString();
         } catch (Exception e) {
             gridTab.dataIgnore();
-
             isError = true;
         }
     }
@@ -353,7 +321,14 @@ public class SOInjector {
         List<String> parentColumns = new ArrayList<String>();
 
         for (Field soField : so.getClass().getDeclaredFields()) { // TODO test reflection
-            Object value = soField.get(so); 
+            Object value = null;
+			try {
+				value = soField.get(so);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+			
             if(value == null) {
                 continue;
             }
@@ -386,14 +361,14 @@ public class SOInjector {
                         }
                     } else {
                         if (value != null) {
-                            logMsg = columnName + " - " + "DiffParentValue";
+                            logMsg = soField.getName() + " - " + "DiffParentValue";
                             break;
                         }
                     }
                 } else if (isForeign && masterRecord == null && gridTab.getTabLevel() > 0) {
                     Object master = gridTab.getParentTab().getValue(foreignColumn);
                     if (master != null && value != null && !master.toString().equals(value)) {
-                        logMsg = columnName + " - " + "DiffParentValue";
+                        logMsg = soField.getName() + " - " + "DiffParentValue";
                         break;
                     }
                 } else if (masterRecord == null && isDetail) {
@@ -409,7 +384,7 @@ public class SOInjector {
                     }
 
                     if (idS == null && id < 0) {
-                        return Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { header.get(i), value });
+                        return Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
                     }
 
                     if (id >= 0) {
@@ -451,7 +426,7 @@ public class SOInjector {
                 if ("AD_Ref_List".equals(foreignTable)) {
                     String idS = resolveForeignList(column, foreignColumn, value,trx);
                     if(idS == null)	{
-                        return Msg.getMsg(Env.getCtx(),"ForeignNotResolved",new Object[]{header.get(i),value});
+                        return Msg.getMsg(Env.getCtx(),"ForeignNotResolved",new Object[]{soField.getName(),value});
                     }
                     
                     setValue = idS;
@@ -459,7 +434,7 @@ public class SOInjector {
                     int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx); 
 
                     if (foreignID < 0) {
-                        return Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { header.get(i), value });
+                        return Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { soField.getName(), value });
                     }
 
                     setValue = foreignID;
@@ -491,64 +466,11 @@ public class SOInjector {
             }
         }
 
-        boolean checkParentKey = parentColumns.size() != gridTab.getParentColumnNames().size();
-        if (isThereRow && logMsg == null && masterRecord != null && checkParentKey) {
-            for (String linkColumn : gridTab.getParentColumnNames()) {
-                String columnName = linkColumn;
-                Object setValue = masterRecord.get_Value(linkColumn);
-                // resolve missing key
-                if (setValue == null) {
-                    columnName = null;
-                    for (int j = startindx; j < endindx + 1; j++) {
-                        if (header.get(j).contains(linkColumn)) {
-                            columnName = header.get(j);
-                            setValue = map.get(columnName);
-                            break;
-                        }
-                    }
-                    if (columnName != null) {
-                        String foreignColumn = null;
-                        boolean isForeing = columnName.indexOf("[") > 0 && columnName.indexOf("]") > 0;
-                        if (isForeing)
-                            foreignColumn = columnName.substring(columnName.indexOf("[") + 1, columnName.indexOf("]"));
-
-                        columnName = getColumnName(false, isForeing, true, columnName);
-                        MColumn column = MColumn.get(Env.getCtx(), gridTab.getField(columnName).getAD_Column_ID());
-                        if (isForeing) {
-                            String foreignTable = column.getReferenceTableName();
-                            if ("AD_Ref_List".equals(foreignTable)) {
-                                String idS = resolveForeignList(column, foreignColumn, setValue, trx);
-                                if (idS == null)
-                                    return Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
-                                            new Object[] { columnName, setValue });
-
-                                setValue = idS;
-                            } else {
-                                int id = resolveForeign(foreignTable, foreignColumn, setValue, trx);
-                                if (id < 0)
-                                    return Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
-                                            new Object[] { columnName, setValue });
-
-                                setValue = id;
-                            }
-                        }
-                    } else {
-                        logMsg = "Key: " + linkColumn + " " + Msg.getMsg(Env.getCtx(), "NotFound");
-                        break;
-                    }
-                }
-                logMsg = gridTab.setValue(linkColumn, setValue);
-                if (logMsg.equals(""))
-                    logMsg = null;
-                else
-                    continue;
-            }
-        }
-
         return logMsg;
     }
 
-    private boolean isValueChanged(Object oldValue, Object value) {
+    @SuppressWarnings("unchecked")
+	private boolean isValueChanged(Object oldValue, Object value) {
         if (isNotNullAndIsEmpty(oldValue)) {
             oldValue = null;
         }
@@ -589,13 +511,13 @@ public class SOInjector {
         if (isError) {
             gridTab.dataDelete();
             trx.rollback();
-            setError(false);
+            isError = false;
         } else {
             try {
                 trx.commit(true);
             } catch (SQLException e) {
                 isError = true;
-                rowsTmpResult.set(0, rowsTmpResult.get(0).replace(quoteChar + "\n", e.getLocalizedMessage() + quoteChar + "\n"));
+//                rowsTmpResult.set(0, rowsTmpResult.get(0).replace(quoteChar + "\n", e.getLocalizedMessage() + quoteChar + "\n"));
                 gridTab.dataDelete();
                 trx.rollback();
             }
@@ -610,7 +532,7 @@ public class SOInjector {
         gridTab.getTableModel().setImportingMode(true, trxName);
         trx = Trx.get(trxName, true);
         masterRecord = null;
-        rowsTmpResult.clear();
+//        rowsTmpResult.clear();
     } 
 
     private String getColumnName(boolean isKey, boolean isForeign, boolean isDetail, String headName) {
@@ -619,7 +541,7 @@ public class SOInjector {
                 if (headName.endsWith("K")) {
                     headName = headName.substring(0, headName.length() - 2);
                 } else {
-                    throw new Exception("Missing key"); // TODO
+//                    throw new Exception("Missing key"); // TODO
                 }
             }
         }
@@ -637,4 +559,34 @@ public class SOInjector {
 
         return headName;
     }
+    
+	private String resolveForeignList(MColumn column, String foreignColumn, Object value ,Trx trx) {
+		String idS = null;
+		String trxName = (trx!=null?trx.getTrxName():null); 
+		StringBuilder select = new StringBuilder("SELECT Value FROM AD_Ref_List WHERE ")
+			.append(foreignColumn).append("=? AND AD_Reference_ID=? AND IsActive='Y'");
+		idS = DB.getSQLValueStringEx(trxName, select.toString(), value, column.getAD_Reference_Value_ID());
+		return idS;
+	}
+
+	private int resolveForeign(String foreignTable, String foreignColumn, Object value,Trx trx) {
+		int id = -1;
+		String trxName = (trx!=null?trx.getTrxName():null); 
+		StringBuilder select = new StringBuilder("SELECT ")
+			.append(foreignTable).append("_ID FROM ")
+			.append(foreignTable).append(" WHERE ")
+			.append(foreignColumn).append("=? AND IsActive='Y' AND AD_Client_ID=?");
+		id = DB.getSQLValueEx(trxName, select.toString(), value, Env.getAD_Client_ID(Env.getCtx()));
+		if (id == -1 && !"AD_Client".equals(foreignTable)) {
+			MTable ft = MTable.get(Env.getCtx(), foreignTable);
+			String accessLevel = ft.getAccessLevel();
+			if (   MTable.ACCESSLEVEL_All.equals(accessLevel)
+				|| MTable.ACCESSLEVEL_SystemOnly.equals(accessLevel)
+				|| MTable.ACCESSLEVEL_SystemPlusClient.equals(accessLevel)) {
+				// try System client if the table has System access
+				id = DB.getSQLValueEx(trxName, select.toString(), value, 0);
+			}
+		}
+		return id;
+	}
 }
