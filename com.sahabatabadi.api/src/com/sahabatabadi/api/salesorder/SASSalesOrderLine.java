@@ -1,5 +1,9 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sahabatabadi.api.SASApiInjectable;
 
 /**
@@ -46,6 +50,23 @@ public class SASSalesOrderLine implements SASApiInjectable {
     private SASSalesOrder header;
 
     /**
+     * Mapping between this class's field / instance variable names and iDempiere
+     * column names. The column names follow iDempiere Template format
+     * specifications.
+     */
+    public static Map<String, String> fieldColumnMap;
+
+    static {
+        HashMap<String, String> tempFieldColumnMap = new HashMap<>();
+        tempFieldColumnMap.put("lineNo", "C_OrderLine>Line");
+        tempFieldColumnMap.put("productId", "C_OrderLine>M_Product_ID[Value]");
+        tempFieldColumnMap.put("quantity", "C_OrderLine>QtyEntered");
+        tempFieldColumnMap.put("documentNo", "C_OrderLine>C_Order_ID[DocumentNo]/K");
+        tempFieldColumnMap.put("datePromised", "C_OrderLine>DatePromised");
+        fieldColumnMap = Collections.unmodifiableMap(tempFieldColumnMap);
+    }
+
+    /**
      * Default constructor.
      * 
      * @param orderLine Bizzy SO line object to convert to SAS SO line object.
@@ -61,5 +82,10 @@ public class SASSalesOrderLine implements SASApiInjectable {
         this.lineNo = header.getNextLineNumber();
         this.documentNo = this.header.documentNo;
         this.datePromised = this.header.datePromised;
+    }
+
+    @Override
+    public String getColumnName(String fieldName) {
+        return fieldColumnMap.get(fieldName);
     }
 }

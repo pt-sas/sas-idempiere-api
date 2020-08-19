@@ -333,7 +333,7 @@ public class SOInjector {
                 continue;
             }
 
-            String columnName = soField.getName();
+            String columnName = so.getColumnName(soField.getName()); 
             boolean isKeyColumn = columnName.indexOf("/") > 0;
             boolean isForeign = columnName.indexOf("[") > 0 && columnName.indexOf("]") > 0;
             boolean isDetail = columnName.indexOf(">") > 0;

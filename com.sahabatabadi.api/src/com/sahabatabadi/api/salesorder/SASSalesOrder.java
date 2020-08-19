@@ -1,6 +1,9 @@
 package com.sahabatabadi.api.salesorder;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
@@ -121,6 +124,30 @@ public class SASSalesOrder implements SASApiInjectable {
     private int latestLineNumber = 0;
 
     /**
+     * Mapping between this class's field / instance variable names and iDempiere
+     * column names. The column names follow iDempiere Template format
+     * specifications.
+     */
+    public static Map<String, String> fieldColumnMap;
+
+    static {
+        HashMap<String, String> tempFieldColumnMap = new HashMap<>();
+        tempFieldColumnMap.put("org", "AD_Org_ID[Name]");
+        tempFieldColumnMap.put("documentNo", "DocumentNo/K");
+        tempFieldColumnMap.put("description", "Description");
+        tempFieldColumnMap.put("docType", "C_DocTypeTarget_ID[Name]");
+        tempFieldColumnMap.put("dateOrdered", "DateOrdered");
+        tempFieldColumnMap.put("datePromised", "DatePromised");
+        tempFieldColumnMap.put("bpCode", "C_BPartner_ID[Value]");
+        tempFieldColumnMap.put("invoiceBpCode", "Bill_BPartner_ID[Value]");
+        tempFieldColumnMap.put("bpLocation", "C_BPartner_Location_ID[Name]");
+        tempFieldColumnMap.put("invoiceBpLocation", "Bill_Location_ID[Name]");
+        tempFieldColumnMap.put("warehouse", "M_Warehouse_ID[Value]");
+        tempFieldColumnMap.put("orgTrx", "AD_OrgTrx_ID[Name]");
+        fieldColumnMap = Collections.unmodifiableMap(tempFieldColumnMap);
+    }
+
+    /**
      * Default constructor.
      * 
      * This class requires the specified bizzySo to have at least one SO line, and
@@ -170,5 +197,10 @@ public class SASSalesOrder implements SASApiInjectable {
     protected int getNextLineNumber() {
         this.latestLineNumber += LINE_NUMBER_INCREMENT;
         return this.latestLineNumber;
+    }
+
+    @Override
+    public String getColumnName(String fieldName) {
+        return fieldColumnMap.get(fieldName);
     }
 }
