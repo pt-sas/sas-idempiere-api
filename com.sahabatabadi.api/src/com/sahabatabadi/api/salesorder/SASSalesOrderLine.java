@@ -1,5 +1,7 @@
 package com.sahabatabadi.api.salesorder;
 
+import com.sahabatabadi.api.SASApiInjectable;
+
 /**
  * Class to represent required information to inject a sales order line into SAS
  * iDempiere. Has methods to convert external SO line classes to SAS SO line.
@@ -9,7 +11,7 @@ package com.sahabatabadi.api.salesorder;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrderLine {
+public class SASSalesOrderLine implements SASApiInjectable {
     /**
      * Line number of the SO. Typically incremented by
      * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between

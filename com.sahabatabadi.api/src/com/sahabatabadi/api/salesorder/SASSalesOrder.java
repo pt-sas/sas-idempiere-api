@@ -6,6 +6,8 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
+import com.sahabatabadi.api.SASApiInjectable;
+
 /**
  * Class to represent required information to inject a sales order header into
  * SAS iDempiere. Has methods to convert external SO classes to SAS SO. Avoid
@@ -15,7 +17,7 @@ import org.compiere.util.DB;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrder {
+public class SASSalesOrder implements SASApiInjectable {
     /**
      * Length of BP codes.
      */
