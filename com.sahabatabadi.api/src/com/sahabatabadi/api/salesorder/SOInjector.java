@@ -334,6 +334,10 @@ public class SOInjector {
             }
 
             String columnName = so.getColumnName(soField.getName()); 
+            if (columnName == null) {
+                continue; // non-SO fields, e.g. constants, logger, etc.
+            }
+
             boolean isKeyColumn = columnName.indexOf("/") > 0;
             boolean isForeign = columnName.indexOf("[") > 0 && columnName.indexOf("]") > 0;
             boolean isDetail = columnName.indexOf(">") > 0;
