@@ -2,6 +2,7 @@ package com.sahabatabadi.api.salesorder;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,12 +61,12 @@ public class SASSalesOrder implements SASApiInjectable {
     /**
      * Date this SO is created. Has to be in the format {@code "yyyy-MM-dd"}.
      */
-    public String dateOrdered;
+    public Date dateOrdered;
 
     /**
      * Has to exactly match {@link #dateOrdered}.
      */
-    public String datePromised;
+    public Date datePromised;
 
     /**
      * Five-digit BP code. Has to match entries in the {@code value} field in
@@ -114,11 +115,6 @@ public class SASSalesOrder implements SASApiInjectable {
     protected CLogger log = CLogger.getCLogger(getClass());
 
     /**
-     * Represents the date format in SAS iDempiere SO template.
-     */
-    private final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-
-    /**
      * Last / largest line number associated with this header.
      */
     private int latestLineNumber = 0;
@@ -162,7 +158,7 @@ public class SASSalesOrder implements SASApiInjectable {
     public SASSalesOrder(BizzySalesOrder bizzySo) {
         this.org = SOUtils.orgMap.get(bizzySo.soff_code);
         this.description = bizzySo.description;
-        this.dateOrdered = formatter.format(bizzySo.dateOrdered);
+        this.dateOrdered = bizzySo.dateOrdered;
         this.datePromised = this.dateOrdered;
         this.bpCode = SOUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
         this.invoiceBpCode = this.bpCode;

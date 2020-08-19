@@ -1,6 +1,8 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +34,7 @@ public class SASSalesOrderLine implements SASApiInjectable {
     /**
      * Quantity of the product being ordered.
      */
-    public int quantity;
+    public BigDecimal quantity;
 
     /**
      * Has to exactly match {@link SASSalesOrder#documentNo} in the header.
@@ -42,7 +44,7 @@ public class SASSalesOrderLine implements SASApiInjectable {
     /**
      * Has to exactly match {@link SASSalesOrder#datePromised} in the header.
      */
-    public String datePromised;
+    public Date datePromised;
 
     /**
      * SO header associated with this SO line.
@@ -76,7 +78,7 @@ public class SASSalesOrderLine implements SASApiInjectable {
         /* parsing values from Bizzy SO Line */
         this.header = header;
         this.productId = orderLine.productId;
-        this.quantity = orderLine.quantity;
+        this.quantity = new BigDecimal(orderLine.quantity);
 
         /* calculating values */
         this.lineNo = header.getNextLineNumber();
