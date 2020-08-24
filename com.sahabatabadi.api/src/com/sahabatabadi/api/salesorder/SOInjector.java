@@ -212,20 +212,15 @@ public class SOInjector {
 
     private void importSo(GridTab headerTab, List<GridTab> childs, SASSalesOrder sasSo) {
         try {
-            // mapCSVHeader populates readProcArray
-            // this code populates tabMapIndexes
-
             isError = false;
             trx = null;
             trxName = null;
             masterRecord = null;
 
-            // process header 
-            closeTrx(headerTab); // sebenernya buat masukin multiple SO di satu CSV
             createTrx(headerTab);
 
-            boolean headerRecordOk = processRecord(headerTab, false, childs, sasSo);
-            if (headerRecordOk) {
+            boolean headerRecordProcessed = processRecord(headerTab, false, childs, sasSo);
+            if (headerRecordProcessed) {
                 // process detail
                 GridTab orderLineTab = null;
                 for (GridTab child : childs) {
@@ -241,8 +236,6 @@ public class SOInjector {
             }
             
             closeTrx(headerTab);
-        } catch (Exception ex) {
-            // throw new AdempiereException(ex); // TODO print error logs 
         } finally {
             headerTab.getTableModel().setImportingMode(false, null);
             for (GridTab child : childs) {
@@ -255,7 +248,6 @@ public class SOInjector {
     // gridTab is either the header tab or the child tab
     private boolean processRecord(GridTab gridTab, boolean isDetail, List<GridTab> childs, SASApiInjectable so) {
         try {
-            // Assign children to master trx
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
             }
@@ -267,9 +259,7 @@ public class SOInjector {
             boolean dataNewSuccess = gridTab.dataNew(false);
             if (!dataNewSuccess) {
                 String errMsg = "[" + gridTab.getName() + "] - Was not able to create a new record!";
-                insertErrorLog(errMsg);
-
-            	throw new Exception();
+            	throw new AdempiereException(errMsg);
             }
             
             gridTab.navigateCurrent();
@@ -281,7 +271,7 @@ public class SOInjector {
 
             boolean isRowProcessed = processRow(gridTab, masterRecord, trx, so); 
             if (!isRowProcessed) {
-                throw new Exception();
+                throw new AdempiereException();
             }
 
             boolean dataSaveSuccess = gridTab.dataSave(false);
@@ -295,9 +285,7 @@ public class SOInjector {
 
                 String errMsg = String.format("%s %s (%s)", Msg.getMsg(Env.getCtx(), "Error"),
                         Msg.getMsg(Env.getCtx(), "SaveError"), info);
-                insertErrorLog(errMsg);
-
-                throw new Exception();
+                throw new AdempiereException(errMsg);
             }
 
             PO po = gridTab.getTableModel().getPO(gridTab.getCurrentRow());
@@ -308,10 +296,13 @@ public class SOInjector {
 
             String logMsgSuccess = Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString(); // TODO
             return true;
-        } catch (Exception e) {
+        } catch (AdempiereException e) {
             gridTab.dataIgnore();
             isError = true;
 
+            if (e.getMessage() != null) {
+                insertErrorLog(e.getMessage());
+            }
             return false;
         }
     }
@@ -320,155 +311,152 @@ public class SOInjector {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();
+        try {
+            for (Field soField : so.getClass().getDeclaredFields()) {
+                Object value = null;
+                try {
+                    value = soField.get(so);
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    String errMsg = "Java Reflection error when accessing " + soField.getName() + "field in " + so.getClass();
+                    throw new AdempiereException(errMsg);
+                }
 
-        for (Field soField : so.getClass().getDeclaredFields()) {
-            Object value = null;
-            try {
-                value = soField.get(so);
-            } catch (IllegalArgumentException | IllegalAccessException e) {
-                String errMsg = "Java Reflection error when accessing " + soField.getName() + "field in " + so.getClass();
-                insertErrorLog(errMsg);
-                return false;
-            }
+                if(value == null) {
+                    continue;
+                }
 
-            if(value == null) {
-                continue;
-            }
+                String columnName = so.getColumnName(soField.getName()); 
+                if (columnName == null) {
+                    continue; // non-SO fields, e.g. constants, logger, etc.
+                }
 
-            String columnName = so.getColumnName(soField.getName()); 
-            if (columnName == null) {
-                continue; // non-SO fields, e.g. constants, logger, etc.
-            }
+                boolean isKeyColumn = columnName.indexOf("/") > 0;
+                boolean isForeign = columnName.indexOf("[") > 0 && columnName.indexOf("]") > 0;
+                boolean isDetail = columnName.indexOf(">") > 0;
 
-            boolean isKeyColumn = columnName.indexOf("/") > 0;
-            boolean isForeign = columnName.indexOf("[") > 0 && columnName.indexOf("]") > 0;
-            boolean isDetail = columnName.indexOf(">") > 0;
+                String foreignColumn = null;
+                if (isForeign) {
+                    foreignColumn = columnName.substring(columnName.indexOf("[") + 1, columnName.indexOf("]"));
+                }
+                columnName = getColumnName(isKeyColumn, isForeign, isDetail, columnName);
 
-            String foreignColumn = null;
-            if (isForeign) {
-                foreignColumn = columnName.substring(columnName.indexOf("[") + 1, columnName.indexOf("]"));
-            }
-            columnName = getColumnName(isKeyColumn, isForeign, isDetail, columnName);
-
-            Object setValue = null;
-            GridField field = gridTab.getField(columnName);
-            if (field.isParentValue()) {
-                if (isForeign && masterRecord != null) {
-                    if (masterRecord.get_Value(foreignColumn).toString().equals(value)) {
-                        String errMsg = gridTab.setValue(field, masterRecord.get_ID()); // LOGMSG
-                        if (!errMsg.equals("")) {
-                            insertErrorLog(errMsg);
-                            return false;
+                Object setValue = null;
+                GridField field = gridTab.getField(columnName);
+                if (field.isParentValue()) {
+                    if (isForeign && masterRecord != null) {
+                        if (masterRecord.get_Value(foreignColumn).toString().equals(value)) {
+                            String errMsg = gridTab.setValue(field, masterRecord.get_ID()); // LOGMSG
+                            if (!errMsg.equals("")) {
+                                throw new AdempiereException(errMsg);
+                            }
+                        } else if (value != null) {
+                            String errMsg = soField.getName() + " - " + +Msg.getMsg(Env.getCtx(), "DiffParentValue",
+                                    new Object[] { masterRecord.get_Value(foreignColumn).toString(), value }); // LOGMSG
+                            throw new AdempiereException(errMsg);
                         }
-                    } else if (value != null) {
-                        String errMsg = soField.getName() + " - " + +Msg.getMsg(Env.getCtx(), "DiffParentValue",
-                                new Object[] { masterRecord.get_Value(foreignColumn).toString(), value }); // LOGMSG
-                        insertErrorLog(errMsg);
-                        return false;
+                    } else if (isForeign && masterRecord == null && gridTab.getTabLevel() > 0) {
+                        Object master = gridTab.getParentTab().getValue(foreignColumn);
+                        if (master != null && value != null && !master.toString().equals(value)) {
+                            String errMsg = soField.getName() + " - " + Msg.getMsg(Env.getCtx(), "DiffParentValue",
+                                    new Object[] { master.toString(), value }); // LOGMSG
+                            throw new AdempiereException(errMsg);
+                        }
+                    } else if (masterRecord == null && isDetail) {
+                        MColumn column = MColumn.get(Env.getCtx(), field.getAD_Column_ID());
+                        String foreignTable = column.getReferenceTableName();
+                        String idS = null;
+                        int id = -1;
+
+                        String logMsg = null;
+                        if ("AD_Ref_List".equals(foreignTable)) {
+                            idS = resolveForeignList(column, foreignColumn, value, trx);
+                            if (idS == null) {
+                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
+                                throw new AdempiereException(errMsg);
+                            }
+
+                            logMsg = gridTab.setValue(field, idS); // LOGMSG
+                        } else {
+                            id = resolveForeign(foreignTable, foreignColumn, value, trx);
+                            if (id < 0) {
+                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
+                                throw new AdempiereException(errMsg);
+                            }
+
+                            logMsg = gridTab.setValue(field, id); // LOGMSG
+                        }
+
+                        if (logMsg == null || !logMsg.equals("")) {
+                            throw new AdempiereException();
+                        }
                     }
-                } else if (isForeign && masterRecord == null && gridTab.getTabLevel() > 0) {
-                    Object master = gridTab.getParentTab().getValue(foreignColumn);
-                    if (master != null && value != null && !master.toString().equals(value)) {
-                        String errMsg = soField.getName() + " - " + Msg.getMsg(Env.getCtx(), "DiffParentValue",
-                                new Object[] { master.toString(), value }); // LOGMSG
-                        insertErrorLog(errMsg);
-                        return false;
-                    }
-                } else if (masterRecord == null && isDetail) {
+
+                    parentColumns.add(columnName);
+                    continue;
+                }
+
+                if (!field.isDisplayed(true)) {
+                    continue;
+                }
+
+                if (isForeign) {
                     MColumn column = MColumn.get(Env.getCtx(), field.getAD_Column_ID());
                     String foreignTable = column.getReferenceTableName();
-                    String idS = null;
-                    int id = -1;
 
-                    String logMsg = null;
                     if ("AD_Ref_List".equals(foreignTable)) {
-                        idS = resolveForeignList(column, foreignColumn, value, trx);
-                        if (idS == null) {
-                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
-                            insertErrorLog(errMsg);
-                            return false;
+                        String idS = resolveForeignList(column, foreignColumn, value,trx);
+                        if(idS == null)	{
+                            String errMsg = Msg.getMsg(Env.getCtx(),"ForeignNotResolved",new Object[] {soField.getName(), value}); // LOGMSG
+                            throw new AdempiereException(errMsg);
                         }
-
-                        logMsg = gridTab.setValue(field, idS); // LOGMSG
+                        
+                        setValue = idS;
                     } else {
-                        id = resolveForeign(foreignTable, foreignColumn, value, trx);
-                        if (id < 0) {
-                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
-                            insertErrorLog(errMsg);
-                            return false;
+                        int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx); 
+
+                        if (foreignID < 0) {
+                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] {soField.getName(), value}); // LOGMSG
+                            throw new AdempiereException(errMsg);
                         }
 
-                        logMsg = gridTab.setValue(field, id); // LOGMSG
+                        setValue = foreignID;
+
+                        if (field.isParentValue()) {
+                            int actualID = (Integer) field.getValue();
+                            if (actualID != foreignID) {
+                                String errMsg = Msg.getMsg(Env.getCtx(), "ParentCannotChange", new Object[] {soField.getName()}); // LOGMSG
+                                throw new AdempiereException(errMsg);
+                            }
+                        }
                     }
-
-                    if (logMsg == null || !logMsg.equals("")) {
-                        return false;
-                    }
-                }
-
-                parentColumns.add(columnName);
-                continue;
-            }
-
-            if (!field.isDisplayed(true)) {
-                continue;
-            }
-
-            if (isForeign) {
-                MColumn column = MColumn.get(Env.getCtx(), field.getAD_Column_ID());
-                String foreignTable = column.getReferenceTableName();
-
-                if ("AD_Ref_List".equals(foreignTable)) {
-                    String idS = resolveForeignList(column, foreignColumn, value,trx);
-                    if(idS == null)	{
-                        String errMsg = Msg.getMsg(Env.getCtx(),"ForeignNotResolved",new Object[] {soField.getName(), value}); // LOGMSG
-                        insertErrorLog(errMsg);
-                        return false;
-                    }
-                    
-                    setValue = idS;
                 } else {
-                    int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx); 
+                    if (value != null) {
+                        if (value instanceof java.util.Date) {
+                            value = new Timestamp(((java.util.Date) value).getTime());
+                        }
 
-                    if (foreignID < 0) {
-                        String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] {soField.getName(), value}); // LOGMSG
-                        insertErrorLog(errMsg);
-                        return false;
+                        // TODO ensure field.getDisplayType() != DisplayType.Payment, != DisplayType.Button
+                        setValue = value;
                     }
+                }
 
-                    setValue = foreignID;
+                if (setValue != null) {
+                    Object oldValue = gridTab.getValue(field);
+                    if (isValueChanged(oldValue, setValue)) {
+                        String errMsg = gridTab.setValue(field, setValue); // LOGMSG
 
-                    if (field.isParentValue()) {
-                        int actualID = (Integer) field.getValue();
-                        if (actualID != foreignID) {
-                            String errMsg = Msg.getMsg(Env.getCtx(), "ParentCannotChange", new Object[] {soField.getName()}); // LOGMSG
-                            insertErrorLog(errMsg);
-                            return false;
+                        if (!errMsg.equals("")) {
+                            throw new AdempiereException(errMsg);
                         }
                     }
                 }
-            } else {
-                if (value != null) {
-                    if (value instanceof java.util.Date) {
-                        value = new Timestamp(((java.util.Date) value).getTime());
-                    }
-
-                    // TODO ensure field.getDisplayType() != DisplayType.Payment, != DisplayType.Button
-                    setValue = value;
-                }
+            }
+        } catch (AdempiereException e) {
+            if (e.getMessage() != null) {
+                insertErrorLog(e.getMessage());
             }
 
-            if (setValue != null) {
-                Object oldValue = gridTab.getValue(field);
-                if (isValueChanged(oldValue, setValue)) {
-                    String errMsg = gridTab.setValue(field, setValue); // LOGMSG
-
-                    if (!errMsg.equals("")) {
-                        insertErrorLog(errMsg);
-                        return false;
-                    }
-                }
-            }
+            return false;
         }
 
         return true;
@@ -522,7 +510,6 @@ public class SOInjector {
                 trx.commit(true);
             } catch (SQLException e) {
                 isError = true;
-//                rowsTmpResult.set(0, rowsTmpResult.get(0).replace(quoteChar + "\n", e.getLocalizedMessage() + quoteChar + "\n"));
                 gridTab.dataDelete();
                 trx.rollback();
             }
@@ -537,7 +524,6 @@ public class SOInjector {
         gridTab.getTableModel().setImportingMode(true, trxName);
         trx = Trx.get(trxName, true);
         masterRecord = null;
-//        rowsTmpResult.clear();
     } 
 
     private String getColumnName(boolean isKey, boolean isForeign, boolean isDetail, String headName) {
@@ -546,7 +532,7 @@ public class SOInjector {
                 if (headName.endsWith("K")) {
                     headName = headName.substring(0, headName.length() - 2);
                 } else {
-//                    throw new Exception("Missing key"); // TODO
+                    insertErrorLog(Msg.getMsg(Env.getCtx(), "ColumnKey") + " " + headName); // missing Key
                 }
             }
         }
@@ -595,6 +581,6 @@ public class SOInjector {
     }
 
     private void insertErrorLog(String errorLog) {
-        return; // TODO
+        System.err.println(PLUGIN_PREFIX + errorLog); // TODO insert error line to DB
     }
 }
