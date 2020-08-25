@@ -32,56 +32,59 @@ import org.compiere.util.ValueNamePair;
 
 public class DocumentInjector {
     public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
-    private static final String ORDER_LINE_TABLE_NAME = "C_OrderLine";
 
     private static int lastReturnedWindowNo = 1000;
 
     protected CLogger log = CLogger.getCLogger(getClass());
+
+    private int windowId;
+    private int menuId;
+
+    private List<GridTab> childs;
+    private GridTab headerTab;
 
     private boolean isError = false;
     private Trx trx;
     private String trxName;
     private PO masterRecord;
 
-    private List<GridTab> childs;
-    GridTab headerTab;
-
-    private int windowId;
-    private int menuId;
-
     public DocumentInjector(int windowId, int menuId) {
         this.windowId = windowId;
         this.menuId = menuId;
     }
 
-    // TODO have to ensure KEY is not null
     public boolean injectDocument(ApiHeader headerObj) {
         isError = false;
         trx = null;
         trxName = null;
         masterRecord = null;
 
-        initGridTab();
+        if (!checkDocumentValid(headerObj)) {
+            return false;
+        }
+
+        initGridTab(); // TODO try moving into ctor, see if there's any insertion issue
 
         try {
             createTrx(headerTab);
 
-            boolean headerRecordProcessed = processRecord(headerTab, false, childs, headerObj);
-            if (headerRecordProcessed) {
+            boolean headerRecordProcessed = processRecord(headerTab, false, headerObj);
+            if (!headerRecordProcessed) {
                 return false;
             }
 
             // process detail
+            String childTableName = headerObj.getLines()[0].getTableName();
             GridTab orderLineTab = null;
             for (GridTab child : childs) {
-                if (ORDER_LINE_TABLE_NAME.equals(child.getTableName())) { // TODO find a way to refactor
+                if (childTableName.equals(child.getTableName())) {
                     orderLineTab = child;
                     break;
                 }
             }
 
             for (ApiInjectable orderLine : headerObj.getLines()) {
-                processRecord(orderLineTab, true, childs, orderLine);
+                processRecord(orderLineTab, true, orderLine);
             }
         } finally {
             closeTrx(headerTab);
@@ -96,7 +99,26 @@ public class DocumentInjector {
         return true;
     }
 
-    public void initGridTab() {
+    private boolean checkDocumentValid(ApiHeader headerObj) {
+        if (headerObj.getKey() == null) {
+            return false;
+        }
+
+        ApiInjectable[] lines = headerObj.getLines();
+        if (lines.length < 1) {
+            return false;
+        }
+
+        for (ApiInjectable line : lines) {
+            if (line.getKey() == null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void initGridTab() {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         final int windowNo = getNextWindowNo();
 
@@ -138,7 +160,7 @@ public class DocumentInjector {
     }
 
     // gridTab is either the header tab or the child tab
-    private boolean processRecord(GridTab gridTab, boolean isDetail, List<GridTab> childs, ApiInjectable so) {
+    private boolean processRecord(GridTab gridTab, boolean isDetail, ApiInjectable so) {
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -161,7 +183,7 @@ public class DocumentInjector {
                 }
             }
 
-            boolean isRowProcessed = processRow(gridTab, masterRecord, trx, so);
+            boolean isRowProcessed = processRow(gridTab, trx, so);
             if (!isRowProcessed) {
                 throw new AdempiereException();
             }
@@ -201,7 +223,7 @@ public class DocumentInjector {
         return true;
     }
 
-    private boolean processRow(GridTab gridTab, PO masterRecord, Trx trx, ApiInjectable so) {
+    private boolean processRow(GridTab gridTab, Trx trx, ApiInjectable so) {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();
@@ -217,7 +239,6 @@ public class DocumentInjector {
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     String errMsg = "Java Reflection error when accessing [" + soField.getName() + "] field in ["
                             + so.getClass() + "] class.";
-                    e.printStackTrace(); // TODO remove
                     throw new AdempiereException(errMsg);
                 }
 
