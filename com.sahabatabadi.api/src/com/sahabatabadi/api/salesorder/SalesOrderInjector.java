@@ -14,7 +14,7 @@ public class SalesOrderInjector {
 
     protected static CLogger log = CLogger.getCLogger(SalesOrderInjector.class);
     
-    public String apiName(BizzySalesOrder bizzySo) {
+    public String injectSalesOrder(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
