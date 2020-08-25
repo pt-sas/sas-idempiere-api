@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sahabatabadi.api.SASApiInjectable;
+import com.sahabatabadi.api.ApiInjectable;
 
 /**
  * Class to represent required information to inject a sales order line into SAS
@@ -17,7 +17,7 @@ import com.sahabatabadi.api.SASApiInjectable;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrderLine implements SASApiInjectable {
+public class SASSalesOrderLine implements ApiInjectable {
     /**
      * Line number of the SO. Typically incremented by
      * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between

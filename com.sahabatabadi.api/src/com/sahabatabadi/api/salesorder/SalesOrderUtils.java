@@ -22,8 +22,8 @@ import org.compiere.util.DB;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SOUtils {
-    protected static CLogger log = CLogger.getCLogger(SOUtils.class);
+public class SalesOrderUtils {
+    protected static CLogger log = CLogger.getCLogger(SalesOrderUtils.class);
 
     /**
      * Mapping between Org character (A/B/C/D/M) and Org name.
@@ -292,9 +292,9 @@ public class SOUtils {
         try {
             pstmt = DB.prepareStatement(discountQuery, null);
             pstmt.setString(1, productId);
-            String bpCode = SOUtils.prependZeros(bpHoldingNo, SASSalesOrder.BP_ID_LENGTH);
+            String bpCode = SalesOrderUtils.prependZeros(bpHoldingNo, SASSalesOrder.BP_ID_LENGTH);
             pstmt.setString(2, bpCode);
-            pstmt.setString(3, SOUtils.getOrgTrx(bpCode, principal));
+            pstmt.setString(3, SalesOrderUtils.getOrgTrx(bpCode, principal));
             rs = pstmt.executeQuery();
             if (rs.next())
                 discount = rs.getInt(1);

@@ -9,8 +9,8 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
-import com.sahabatabadi.api.SASApiHeader;
-import com.sahabatabadi.api.SASApiInjectable;
+import com.sahabatabadi.api.ApiHeader;
+import com.sahabatabadi.api.ApiInjectable;
 
 /**
  * Class to represent required information to inject a sales order header into
@@ -21,7 +21,7 @@ import com.sahabatabadi.api.SASApiInjectable;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrder implements SASApiInjectable, SASApiHeader {
+public class SASSalesOrder implements ApiInjectable, ApiHeader {
     /**
      * Length of BP codes.
      */
@@ -156,27 +156,27 @@ public class SASSalesOrder implements SASApiInjectable, SASApiHeader {
      * @see org.compiere.model.PO#saveNew()
      */
     public SASSalesOrder(BizzySalesOrder bizzySo) {
-        this.org = SOUtils.orgMap.get(bizzySo.soff_code);
+        this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
         this.description = bizzySo.description;
         this.dateOrdered = bizzySo.dateOrdered;
         this.datePromised = this.dateOrdered;
-        this.bpCode = SOUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
+        this.bpCode = SalesOrderUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
         this.invoiceBpCode = this.bpCode;
         this.bpLocation = bizzySo.bpLocationName;
         this.invoiceBpLocation = this.bpLocation;
-        this.warehouse = SOUtils.warehouseMap.get(bizzySo.soff_code);
+        this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
 
         StringBuilder sb = new StringBuilder("O");
         sb.append(bizzySo.orderSource);
-        sb.append(SOUtils.getBPLocationIsTax(bizzySo.bpLocationName) ? "T" : "N");
-        this.docType = SOUtils.docTypeMap.get(sb.toString());
+        sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationName) ? "T" : "N");
+        this.docType = SalesOrderUtils.docTypeMap.get(sb.toString());
 
         String principal = bizzySo.orderLines[0].principalId;
-        this.orgTrx = SOUtils.getOrgTrx(this.bpCode, principal);
+        this.orgTrx = SalesOrderUtils.getOrgTrx(this.bpCode, principal);
 
         // org.compiere.model.PO#saveNew()
-        PO po = SOUtils.getMOrderPO(SOUtils.orgIdMap.get(this.org), SOUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
-        this.documentNo = DB.getDocumentNo(SOUtils.docTypeIdMap.get(this.docType), null, false, po);
+        PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org), SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
+        this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
 
         this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
@@ -201,7 +201,7 @@ public class SASSalesOrder implements SASApiInjectable, SASApiHeader {
     }
     
     @Override
-    public SASApiInjectable[] getLines() {
+    public ApiInjectable[] getLines() {
     	return this.orderLines;
     }
 }

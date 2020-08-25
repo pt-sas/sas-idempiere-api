@@ -33,7 +33,7 @@ public class DocumentInjector {
     private String trxName;
     private PO masterRecord;
 
-    public void injectDocument(GridTab headerTab, List<GridTab> childs, SASApiHeader headerObj) {
+    public void injectDocument(GridTab headerTab, List<GridTab> childs, ApiHeader headerObj) {
         try {
             isError = false;
             trx = null;
@@ -53,7 +53,7 @@ public class DocumentInjector {
                     }
                 }
 
-                for (SASApiInjectable orderLine : headerObj.getLines()) {
+                for (ApiInjectable orderLine : headerObj.getLines()) {
                     processRecord(orderLineTab, true, childs, orderLine);
                 }
             }
@@ -69,7 +69,7 @@ public class DocumentInjector {
     }
 
     // gridTab is either the header tab or the child tab
-    private boolean processRecord(GridTab gridTab, boolean isDetail, List<GridTab> childs, SASApiInjectable so) {
+    private boolean processRecord(GridTab gridTab, boolean isDetail, List<GridTab> childs, ApiInjectable so) {
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -132,7 +132,7 @@ public class DocumentInjector {
         }
     }
 
-    private boolean processRow(GridTab gridTab, PO masterRecord, Trx trx, SASApiInjectable so) {
+    private boolean processRow(GridTab gridTab, PO masterRecord, Trx trx, ApiInjectable so) {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();

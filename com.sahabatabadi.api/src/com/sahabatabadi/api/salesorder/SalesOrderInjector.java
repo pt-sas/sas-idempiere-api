@@ -20,23 +20,21 @@ import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 
 import com.sahabatabadi.api.DocumentInjector;
-import com.sahabatabadi.api.SASApiHeader;
+import com.sahabatabadi.api.ApiHeader;
 
-public class SOInjector {
-	public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
-	
+public class SalesOrderInjector {	
     public static final int SALES_ORDER_MENU_ID = 129;
     public static final int SALES_ORDER_WINDOW_ID = 143;
 
-    protected static CLogger log = CLogger.getCLogger(SOInjector.class);
+    protected static CLogger log = CLogger.getCLogger(SalesOrderInjector.class);
 
     private static int lastReturnedWindowNo = 1000;
     
     public String apiName(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
-            String principal = SOUtils.getProductPrincipal(soLine.productId);
+            String principal = SalesOrderUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
-            soLine.discount = SOUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal); // setting double as an int
+            soLine.discount = SalesOrderUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal); // setting double as an int
         }
 
         ArrayList<String> insertedDocNums = new ArrayList<>();
@@ -94,12 +92,12 @@ public class SOInjector {
     }
 
     private static int getNextWindowNo() {
-        SOInjector.lastReturnedWindowNo += 1;
-        return SOInjector.lastReturnedWindowNo;
+        SalesOrderInjector.lastReturnedWindowNo += 1;
+        return SalesOrderInjector.lastReturnedWindowNo;
     }
 
     // TODO have to ensure KEY is not null
-    private boolean injectSalesOrder(SASApiHeader document) {
+    private boolean injectSalesOrder(ApiHeader document) {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         final int windowNo = getNextWindowNo();
 
@@ -138,7 +136,7 @@ public class SOInjector {
         inj.injectDocument(headerTab, childs, document);
 
         if (log.isLoggable(Level.INFO) && (document instanceof SASSalesOrder)) // TODO redesign to remove type 
-            log.info(PLUGIN_PREFIX + "The document number is: " + ((SASSalesOrder) document).documentNo);
+            log.info("The document number is: " + ((SASSalesOrder) document).documentNo);
 
         return true;
     }
@@ -162,7 +160,7 @@ public class SOInjector {
                 String msg = gridTab.processFieldChange(mField); // Dependencies & Callout
                 if (msg.length() > 0) {
                     if (log.isLoggable(Level.WARNING))
-                        log.warning(PLUGIN_PREFIX + "Data status error: " + msg);
+                        log.warning("Callout error in field [" + mField.getColumnName() + "]: " + msg);
                 }
 
                 // Refresh the list on dependant fields
