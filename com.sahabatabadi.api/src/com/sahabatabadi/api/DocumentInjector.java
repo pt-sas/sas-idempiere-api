@@ -1,6 +1,7 @@
 package com.sahabatabadi.api;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -137,11 +138,16 @@ public class DocumentInjector {
         List<String> parentColumns = new ArrayList<String>();
         try {
             for (Field soField : so.getClass().getDeclaredFields()) {
+            	if (!Modifier.isPublic(soField.getModifiers())) {
+            		continue; // non-public fields
+            	}
+            	
                 Object value = null;
                 try {
                     value = soField.get(so);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                    String errMsg = "Java Reflection error when accessing " + soField.getName() + "field in " + so.getClass();
+                    String errMsg = "Java Reflection error when accessing [" + soField.getName() + "] field in [" + so.getClass() + "] class.";
+                    e.printStackTrace(); // TODO remove
                     throw new AdempiereException(errMsg);
                 }
 
