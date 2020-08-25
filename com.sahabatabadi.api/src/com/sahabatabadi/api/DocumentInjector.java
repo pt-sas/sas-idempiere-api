@@ -5,14 +5,22 @@ import java.lang.reflect.Modifier;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import org.adempiere.base.Core;
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.DataStatusEvent;
+import org.compiere.model.DataStatusListener;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
+import org.compiere.model.GridWindow;
+import org.compiere.model.GridWindowVO;
 import org.compiere.model.MColumn;
+import org.compiere.model.MLookup;
 import org.compiere.model.MTable;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
@@ -25,6 +33,8 @@ import org.compiere.util.ValueNamePair;
 public class DocumentInjector {
 	public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
 	private static final String ORDER_LINE_TABLE_NAME = "C_OrderLine";
+
+    private static int lastReturnedWindowNo = 1000;
 	
 	protected CLogger log = CLogger.getCLogger(getClass());
 
@@ -32,40 +42,99 @@ public class DocumentInjector {
 	private Trx trx;
     private String trxName;
     private PO masterRecord;
+    
+    private List<GridTab> childs;
+    GridTab headerTab;
+    
+    private int windowId;
+    private int menuId;
+    
+    public DocumentInjector(int windowId, int menuId) {
+    	this.windowId = windowId;
+    	this.menuId = menuId;
+    }
+    
+    // TODO have to ensure KEY is not null
+    public boolean injectDocument(ApiHeader headerObj) {
+    	isError = false;
+        trx = null;
+        trxName = null;
+        masterRecord = null;
 
-    public void injectDocument(GridTab headerTab, List<GridTab> childs, ApiHeader headerObj) {
+        initGridTab();
+        
         try {
-            isError = false;
-            trx = null;
-            trxName = null;
-            masterRecord = null;
-
             createTrx(headerTab);
 
             boolean headerRecordProcessed = processRecord(headerTab, false, childs, headerObj);
             if (headerRecordProcessed) {
-                // process detail
-                GridTab orderLineTab = null;
-                for (GridTab child : childs) {
-                    if (ORDER_LINE_TABLE_NAME.equals(child.getTableName())) { // TODO find a way to refactor, make extendable
-                        orderLineTab = child;
-                        break;
-                    }
-                }
-
-                for (ApiInjectable orderLine : headerObj.getLines()) {
-                    processRecord(orderLineTab, true, childs, orderLine);
-                }
+                return false;
             }
             
-            closeTrx(headerTab);
+            // process detail
+            GridTab orderLineTab = null;
+            for (GridTab child : childs) {
+                if (ORDER_LINE_TABLE_NAME.equals(child.getTableName())) { // TODO find a way to refactor, make extendable
+                    orderLineTab = child;
+                    break;
+                }
+            }
+
+            for (ApiInjectable orderLine : headerObj.getLines()) {
+                processRecord(orderLineTab, true, childs, orderLine);
+            }
         } finally {
+        	closeTrx(headerTab);
+        	
             headerTab.getTableModel().setImportingMode(false, null);
             for (GridTab child : childs) {
                 child.getTableModel().setImportingMode(false, null);
             }
             headerTab.dataRefreshAll();
         }
+        
+        return true;
+    }
+    
+    public void initGridTab() {
+        // org.adempiere.webui.panel.action.FileImportAction::importFile()
+        final int windowNo = getNextWindowNo();
+
+        // org.adempiere.webui.apps.AEnv::getMWindowVO(int, int, int)
+        GridWindowVO gWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, this.windowId, this.menuId);
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initComponents()
+        GridWindow gridWindow = new GridWindow(gWindowVO, true);
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initPanel(MQuery query)
+        Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", gridWindow.isSOTrx());
+
+        // org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int)
+        gridWindow.initTab(0);
+        this.headerTab = gridWindow.getTab(0);
+        new GridTabHolder(headerTab);
+
+        // org.adempiere.webui.panel.action.FileImportAction::importFile()
+        Set<String> tables = new HashSet<String>();
+        this.childs = new ArrayList<GridTab>();
+        for (int i = 1; i < gridWindow.getTabCount(); i++) {
+            // org.adempiere.webui.adwindow.AbstractADWindowContent::initTab(MQuery, int)
+            gridWindow.initTab(i);
+            GridTab gTab = gridWindow.getTab(i);
+            new GridTabHolder(gTab);
+
+            String tableName = gTab.getTableName();
+            if (tables.contains(tableName))
+                continue;
+
+            tables.add(tableName);
+            childs.add(gTab);
+        }
+    }
+    
+    private static int getNextWindowNo() {
+        DocumentInjector.lastReturnedWindowNo += 1;
+        return DocumentInjector.lastReturnedWindowNo;
     }
 
     // gridTab is either the header tab or the child tab
@@ -120,7 +189,6 @@ public class DocumentInjector {
             
             if (log.isLoggable(Level.INFO)) 
                 log.info(PLUGIN_PREFIX + Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString());
-            return true;
         } catch (AdempiereException e) {
             gridTab.dataIgnore();
             isError = true;
@@ -130,6 +198,8 @@ public class DocumentInjector {
             }
             return false;
         }
+        
+        return true;
     }
 
     private boolean processRow(GridTab gridTab, PO masterRecord, Trx trx, ApiInjectable so) {
@@ -413,5 +483,41 @@ public class DocumentInjector {
     private void insertErrorLog(String errorLog) {
         System.err.println(PLUGIN_PREFIX + errorLog); // TODO insert error line to DB
     }
+    
+    class GridTabHolder implements DataStatusListener {
+        private GridTab gridTab;
 
+        public GridTabHolder(GridTab gTab) {
+            this.gridTab = gTab;
+            gridTab.addDataStatusListener(this);
+        }
+
+        public void dataStatusChanged(DataStatusEvent e) {
+            // org.adempiere.webui.adwindow.ADTabpanel::dataStatusChanged(DataStatusEvent)
+            int col = e.getChangedColumn();
+            // Process Callout
+            GridField mField = gridTab.getField(col);
+            if (mField != null && (mField.getCallout().length() > 0
+                    || (Core.findCallout(gridTab.getTableName(), mField.getColumnName())).size() > 0
+                    || gridTab.hasDependants(mField.getColumnName()))) {
+                String msg = gridTab.processFieldChange(mField); // Dependencies & Callout
+                if (msg.length() > 0) {
+                    if (log.isLoggable(Level.WARNING))
+                        log.warning("Callout error in field [" + mField.getColumnName() + "]: " + msg);
+                }
+
+                // Refresh the list on dependant fields
+                for (GridField dependentField : gridTab.getDependantFields(mField.getColumnName())) {
+                    // if the field has a lookup
+                    if (dependentField != null && dependentField.getLookup() instanceof MLookup) {
+                        MLookup mLookup = (MLookup) dependentField.getLookup();
+                        // if the lookup is dynamic (i.e. contains this columnName as variable)
+                        if (mLookup.getValidation().indexOf("@" + mField.getColumnName() + "@") != -1) {
+                            mLookup.refresh();
+                        }
+                    }
+                } // for all dependent fields
+            }
+        }
+    }
 }
