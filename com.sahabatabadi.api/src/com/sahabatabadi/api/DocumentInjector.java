@@ -31,38 +31,38 @@ import org.compiere.util.Trx;
 import org.compiere.util.ValueNamePair;
 
 public class DocumentInjector {
-	public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
-	private static final String ORDER_LINE_TABLE_NAME = "C_OrderLine";
+    public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
+    private static final String ORDER_LINE_TABLE_NAME = "C_OrderLine";
 
     private static int lastReturnedWindowNo = 1000;
-	
-	protected CLogger log = CLogger.getCLogger(getClass());
 
-	private boolean isError = false;
-	private Trx trx;
+    protected CLogger log = CLogger.getCLogger(getClass());
+
+    private boolean isError = false;
+    private Trx trx;
     private String trxName;
     private PO masterRecord;
-    
+
     private List<GridTab> childs;
     GridTab headerTab;
-    
+
     private int windowId;
     private int menuId;
-    
+
     public DocumentInjector(int windowId, int menuId) {
-    	this.windowId = windowId;
-    	this.menuId = menuId;
+        this.windowId = windowId;
+        this.menuId = menuId;
     }
-    
+
     // TODO have to ensure KEY is not null
     public boolean injectDocument(ApiHeader headerObj) {
-    	isError = false;
+        isError = false;
         trx = null;
         trxName = null;
         masterRecord = null;
 
         initGridTab();
-        
+
         try {
             createTrx(headerTab);
 
@@ -70,11 +70,11 @@ public class DocumentInjector {
             if (headerRecordProcessed) {
                 return false;
             }
-            
+
             // process detail
             GridTab orderLineTab = null;
             for (GridTab child : childs) {
-                if (ORDER_LINE_TABLE_NAME.equals(child.getTableName())) { // TODO find a way to refactor, make extendable
+                if (ORDER_LINE_TABLE_NAME.equals(child.getTableName())) { // TODO find a way to refactor
                     orderLineTab = child;
                     break;
                 }
@@ -84,18 +84,18 @@ public class DocumentInjector {
                 processRecord(orderLineTab, true, childs, orderLine);
             }
         } finally {
-        	closeTrx(headerTab);
-        	
+            closeTrx(headerTab);
+
             headerTab.getTableModel().setImportingMode(false, null);
             for (GridTab child : childs) {
                 child.getTableModel().setImportingMode(false, null);
             }
             headerTab.dataRefreshAll();
         }
-        
+
         return true;
     }
-    
+
     public void initGridTab() {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         final int windowNo = getNextWindowNo();
@@ -131,7 +131,7 @@ public class DocumentInjector {
             childs.add(gTab);
         }
     }
-    
+
     private static int getNextWindowNo() {
         DocumentInjector.lastReturnedWindowNo += 1;
         return DocumentInjector.lastReturnedWindowNo;
@@ -151,9 +151,9 @@ public class DocumentInjector {
             boolean dataNewSuccess = gridTab.dataNew(false);
             if (!dataNewSuccess) {
                 String errMsg = "[" + gridTab.getName() + "] - Was not able to create a new record!";
-            	throw new AdempiereException(errMsg);
+                throw new AdempiereException(errMsg);
             }
-            
+
             gridTab.navigateCurrent();
             if (!isDetail) {
                 for (GridTab child : childs) {
@@ -161,7 +161,7 @@ public class DocumentInjector {
                 }
             }
 
-            boolean isRowProcessed = processRow(gridTab, masterRecord, trx, so); 
+            boolean isRowProcessed = processRow(gridTab, masterRecord, trx, so);
             if (!isRowProcessed) {
                 throw new AdempiereException();
             }
@@ -186,8 +186,7 @@ public class DocumentInjector {
                 masterRecord = po;
             }
 
-            
-            if (log.isLoggable(Level.INFO)) 
+            if (log.isLoggable(Level.INFO))
                 log.info(PLUGIN_PREFIX + Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString());
         } catch (AdempiereException e) {
             gridTab.dataIgnore();
@@ -198,7 +197,7 @@ public class DocumentInjector {
             }
             return false;
         }
-        
+
         return true;
     }
 
@@ -208,24 +207,25 @@ public class DocumentInjector {
         List<String> parentColumns = new ArrayList<String>();
         try {
             for (Field soField : so.getClass().getDeclaredFields()) {
-            	if (!Modifier.isPublic(soField.getModifiers())) {
-            		continue; // non-public fields
-            	}
-            	
+                if (!Modifier.isPublic(soField.getModifiers())) {
+                    continue; // non-public fields
+                }
+
                 Object value = null;
                 try {
                     value = soField.get(so);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                    String errMsg = "Java Reflection error when accessing [" + soField.getName() + "] field in [" + so.getClass() + "] class.";
+                    String errMsg = "Java Reflection error when accessing [" + soField.getName() + "] field in ["
+                            + so.getClass() + "] class.";
                     e.printStackTrace(); // TODO remove
                     throw new AdempiereException(errMsg);
                 }
 
-                if(value == null) {
+                if (value == null) {
                     continue;
                 }
 
-                String columnName = so.getColumnName(soField.getName()); 
+                String columnName = so.getColumnName(soField.getName());
                 if (columnName == null) {
                     continue; // non-SO fields, e.g. constants, logger, etc.
                 }
@@ -271,7 +271,8 @@ public class DocumentInjector {
                         if ("AD_Ref_List".equals(foreignTable)) {
                             idS = resolveForeignList(column, foreignColumn, value, trx);
                             if (idS == null) {
-                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
+                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
+                                        new Object[] { columnName, value });
                                 throw new AdempiereException(errMsg);
                             }
 
@@ -279,7 +280,8 @@ public class DocumentInjector {
                         } else {
                             id = resolveForeign(foreignTable, foreignColumn, value, trx);
                             if (id < 0) {
-                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] { columnName, value });
+                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
+                                        new Object[] { columnName, value });
                                 throw new AdempiereException(errMsg);
                             }
 
@@ -304,18 +306,20 @@ public class DocumentInjector {
                     String foreignTable = column.getReferenceTableName();
 
                     if ("AD_Ref_List".equals(foreignTable)) {
-                        String idS = resolveForeignList(column, foreignColumn, value,trx);
-                        if(idS == null)	{
-                            String errMsg = Msg.getMsg(Env.getCtx(),"ForeignNotResolved",new Object[] {soField.getName(), value}); // LOGMSG
+                        String idS = resolveForeignList(column, foreignColumn, value, trx);
+                        if (idS == null) {
+                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
+                                    new Object[] { soField.getName(), value }); // LOGMSG
                             throw new AdempiereException(errMsg);
                         }
-                        
+
                         setValue = idS;
                     } else {
-                        int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx); 
+                        int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx);
 
                         if (foreignID < 0) {
-                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved", new Object[] {soField.getName(), value}); // LOGMSG
+                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
+                                    new Object[] { soField.getName(), value }); // LOGMSG
                             throw new AdempiereException(errMsg);
                         }
 
@@ -324,7 +328,8 @@ public class DocumentInjector {
                         if (field.isParentValue()) {
                             int actualID = (Integer) field.getValue();
                             if (actualID != foreignID) {
-                                String errMsg = Msg.getMsg(Env.getCtx(), "ParentCannotChange", new Object[] {soField.getName()}); // LOGMSG
+                                String errMsg = Msg.getMsg(Env.getCtx(), "ParentCannotChange",
+                                        new Object[] { soField.getName() }); // LOGMSG
                                 throw new AdempiereException(errMsg);
                             }
                         }
@@ -335,7 +340,8 @@ public class DocumentInjector {
                             value = new Timestamp(((java.util.Date) value).getTime());
                         }
 
-                        // TODO ensure field.getDisplayType() != DisplayType.Payment, != DisplayType.Button
+                        // TODO ensure field.getDisplayType() != DisplayType.Payment, !=
+                        // DisplayType.Button
                         setValue = value;
                     }
                 }
@@ -363,7 +369,7 @@ public class DocumentInjector {
     }
 
     @SuppressWarnings("unchecked")
-	private boolean isValueChanged(Object oldValue, Object value) {
+    private boolean isValueChanged(Object oldValue, Object value) {
         if (isNotNullAndIsEmpty(oldValue)) {
             oldValue = null;
         }
@@ -424,7 +430,7 @@ public class DocumentInjector {
         gridTab.getTableModel().setImportingMode(true, trxName);
         trx = Trx.get(trxName, true);
         masterRecord = null;
-    } 
+    }
 
     private String getColumnName(boolean isKey, boolean isForeign, boolean isDetail, String headName) {
         if (isKey) {
@@ -463,9 +469,8 @@ public class DocumentInjector {
     private int resolveForeign(String foreignTable, String foreignColumn, Object value, Trx trx) {
         int id = -1;
         String trxName = (trx != null ? trx.getTrxName() : null);
-        StringBuilder select = new StringBuilder("SELECT ").append(foreignTable)
-                .append("_ID FROM ").append(foreignTable)
-                .append(" WHERE ").append(foreignColumn)
+        StringBuilder select = new StringBuilder("SELECT ").append(foreignTable).append("_ID FROM ")
+                .append(foreignTable).append(" WHERE ").append(foreignColumn)
                 .append("=? AND IsActive='Y' AND AD_Client_ID=?");
         id = DB.getSQLValueEx(trxName, select.toString(), value, Env.getAD_Client_ID(Env.getCtx()));
         if (id == -1 && !"AD_Client".equals(foreignTable)) {
@@ -483,7 +488,7 @@ public class DocumentInjector {
     private void insertErrorLog(String errorLog) {
         System.err.println(PLUGIN_PREFIX + errorLog); // TODO insert error line to DB
     }
-    
+
     class GridTabHolder implements DataStatusListener {
         private GridTab gridTab;
 
