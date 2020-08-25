@@ -1,10 +1,6 @@
 package com.sahabatabadi.api.salesorder;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -16,11 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import com.sahabatabadi.api.SASApiInjectable;
-
 import org.adempiere.base.Core;
-import org.adempiere.base.IGridTabImporter;
-import org.adempiere.impexp.GridTabCSVImporter;
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.DataStatusListener;
 import org.compiere.model.GridField;
@@ -37,6 +30,9 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.compiere.util.ValueNamePair;
+
+import com.sahabatabadi.api.SASApiHeader;
+import com.sahabatabadi.api.SASApiInjectable;
 
 public class SOInjector {
 	public static final String IMPORT_MODE_MERGE = "M";
@@ -68,7 +64,7 @@ public class SOInjector {
             splitBizzySo.orderLines = soLineGroup;
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
-            boolean injectSuccess = injectSalesOrder(sasSo, sasSo.documentNo);
+            boolean injectSuccess = injectSalesOrder(sasSo);
 
             if (injectSuccess) {
                 insertedDocNums.add(sasSo.documentNo);
@@ -120,7 +116,7 @@ public class SOInjector {
     }
 
     // TODO have to ensure KEY is not null
-    private boolean injectSalesOrder(SASApiInjectable document) {
+    private boolean injectSalesOrder(SASApiHeader document) {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         final int windowNo = getNextWindowNo();
 
@@ -155,9 +151,9 @@ public class SOInjector {
             childs.add(gTab);
         }
 
-        importSo(headerTab, childs, document);
+        injectDocument(headerTab, childs, document);
 
-        if (log.isLoggable(Level.INFO) && (document instanceof SASSalesOrder)) 
+        if (log.isLoggable(Level.INFO) && (document instanceof SASSalesOrder)) // TODO redesign to remove type 
             log.info(PLUGIN_PREFIX + "The document number is: " + ((SASSalesOrder) document).documentNo);
 
         return true;
@@ -210,7 +206,7 @@ public class SOInjector {
 
     private static final String ORDER_LINE_TABLE_NAME = "C_OrderLine";
 
-    private void importSo(GridTab headerTab, List<GridTab> childs, SASSalesOrder sasSo) {
+    private void injectDocument(GridTab headerTab, List<GridTab> childs, SASApiHeader headerObj) {
         try {
             isError = false;
             trx = null;
@@ -219,7 +215,7 @@ public class SOInjector {
 
             createTrx(headerTab);
 
-            boolean headerRecordProcessed = processRecord(headerTab, false, childs, sasSo);
+            boolean headerRecordProcessed = processRecord(headerTab, false, childs, headerObj);
             if (headerRecordProcessed) {
                 // process detail
                 GridTab orderLineTab = null;
@@ -230,7 +226,7 @@ public class SOInjector {
                     }
                 }
 
-                for (SASSalesOrderLine orderLine : sasSo.orderLines) {
+                for (SASApiInjectable orderLine : headerObj.getLines()) {
                     processRecord(orderLineTab, true, childs, orderLine);
                 }
             }
@@ -294,7 +290,9 @@ public class SOInjector {
                 masterRecord = po;
             }
 
-            String logMsgSuccess = Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString(); // TODO
+            
+            if (log.isLoggable(Level.INFO)) 
+                log.info(PLUGIN_PREFIX + Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString());
             return true;
         } catch (AdempiereException e) {
             gridTab.dataIgnore();
@@ -350,7 +348,7 @@ public class SOInjector {
                                 throw new AdempiereException(errMsg);
                             }
                         } else if (value != null) {
-                            String errMsg = soField.getName() + " - " + +Msg.getMsg(Env.getCtx(), "DiffParentValue",
+                            String errMsg = soField.getName() + " - " + Msg.getMsg(Env.getCtx(), "DiffParentValue",
                                     new Object[] { masterRecord.get_Value(foreignColumn).toString(), value }); // LOGMSG
                             throw new AdempiereException(errMsg);
                         }
