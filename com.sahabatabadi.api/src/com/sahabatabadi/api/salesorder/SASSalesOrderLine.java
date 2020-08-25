@@ -18,6 +18,7 @@ import com.sahabatabadi.api.ApiInjectable;
  * @version 1.0
  */
 public class SASSalesOrderLine implements ApiInjectable {
+    // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
      * Line number of the SO. Typically incremented by
      * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between
@@ -89,5 +90,10 @@ public class SASSalesOrderLine implements ApiInjectable {
     @Override
     public String getColumnName(String fieldName) {
         return fieldColumnMap.get(fieldName);
+    }
+
+    @Override
+    public Object getKey() {
+        return this.documentNo;
     }
 }

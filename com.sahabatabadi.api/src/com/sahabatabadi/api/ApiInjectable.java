@@ -13,4 +13,11 @@ public interface ApiInjectable {
      *         specifications
      */
     public String getColumnName(String fieldName);
+
+    /**
+     * Gets the primary key of the header object.
+     * 
+     * @return Primary key of the header
+     */
+    public Object getKey();
 }

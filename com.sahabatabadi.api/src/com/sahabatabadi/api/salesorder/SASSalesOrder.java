@@ -22,6 +22,7 @@ import com.sahabatabadi.api.ApiInjectable;
  * @version 1.0
  */
 public class SASSalesOrder implements ApiInjectable, ApiHeader {
+    // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
      * Length of BP codes.
      */
@@ -199,9 +200,14 @@ public class SASSalesOrder implements ApiInjectable, ApiHeader {
     public String getColumnName(String fieldName) {
         return fieldColumnMap.get(fieldName);
     }
-    
+
+    @Override
+    public Object getKey() {
+        return this.documentNo;
+    }
+
     @Override
     public ApiInjectable[] getLines() {
-    	return this.orderLines;
+        return this.orderLines;
     }
 }
