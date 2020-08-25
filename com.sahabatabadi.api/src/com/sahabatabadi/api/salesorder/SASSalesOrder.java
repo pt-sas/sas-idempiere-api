@@ -1,6 +1,5 @@
 package com.sahabatabadi.api.salesorder;
 
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +9,7 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
+import com.sahabatabadi.api.SASApiHeader;
 import com.sahabatabadi.api.SASApiInjectable;
 
 /**
@@ -21,7 +21,7 @@ import com.sahabatabadi.api.SASApiInjectable;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrder implements SASApiInjectable {
+public class SASSalesOrder implements SASApiInjectable, SASApiHeader {
     /**
      * Length of BP codes.
      */
@@ -198,5 +198,10 @@ public class SASSalesOrder implements SASApiInjectable {
     @Override
     public String getColumnName(String fieldName) {
         return fieldColumnMap.get(fieldName);
+    }
+    
+    @Override
+    public SASApiInjectable[] getLines() {
+    	return this.orderLines;
     }
 }
