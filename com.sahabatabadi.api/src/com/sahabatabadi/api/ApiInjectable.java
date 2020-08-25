@@ -15,6 +15,13 @@ public interface ApiInjectable {
     public String getColumnName(String fieldName);
 
     /**
+     * Gets the table name in iDempiere associated with the object.
+     * 
+     * @return Table name in iDempiere
+     */
+    public String getTableName();
+
+    /**
      * Gets the primary key of the header object.
      * 
      * @return Primary key of the header

@@ -34,6 +34,11 @@ public class SASSalesOrder implements ApiInjectable, ApiHeader {
     public static final int LINE_NUMBER_INCREMENT = 10;
 
     /**
+     * Table name in iDempiere associated with this line object.
+     */
+    public static final String TABLE_NAME = "C_Order";
+
+    /**
      * Org's full name. Has to match entries in the {@code name} field in
      * iDempiere's {@code AD_Org} table, where where the {@code isorgtrxdim} field
      * is {@code 'N'}.
@@ -199,6 +204,11 @@ public class SASSalesOrder implements ApiInjectable, ApiHeader {
     @Override
     public String getColumnName(String fieldName) {
         return fieldColumnMap.get(fieldName);
+    }
+
+    @Override
+    public String getTableName() {
+        return TABLE_NAME;
     }
 
     @Override

@@ -20,6 +20,11 @@ import com.sahabatabadi.api.ApiInjectable;
 public class SASSalesOrderLine implements ApiInjectable {
     // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
+     * Table name in iDempiere associated with this line object.
+     */
+    public static final String TABLE_NAME = "C_OrderLine";
+
+    /**
      * Line number of the SO. Typically incremented by
      * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between
      * different SO lines.
@@ -90,6 +95,11 @@ public class SASSalesOrderLine implements ApiInjectable {
     @Override
     public String getColumnName(String fieldName) {
         return fieldColumnMap.get(fieldName);
+    }
+
+    @Override
+    public String getTableName() {
+        return TABLE_NAME;
     }
 
     @Override
