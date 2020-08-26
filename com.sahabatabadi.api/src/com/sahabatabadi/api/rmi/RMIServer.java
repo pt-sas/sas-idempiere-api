@@ -13,6 +13,7 @@ import org.compiere.util.CLogger;
 public class RMIServer {
     public static final int RMI_REGISTRY_PORT = 1579;
     
+    private RemoteApi server;
     private Remote stub;
     private Registry registry;
 
@@ -23,7 +24,7 @@ public class RMIServer {
             log.info("Starting RMI Server");
 
         try {
-            RemoteApi server = new RemoteApi();
+            server = new RemoteApi();
             stub = (Remote) UnicastRemoteObject.exportObject(server, 0);
 
             // Bind the remote object's stub in the registry
