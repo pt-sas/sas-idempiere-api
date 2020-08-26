@@ -6,7 +6,7 @@ package com.sahabatabadi.api;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public interface ApiInjectable {
+public interface Document {
     /**
      * Gets iDempiere column name given the field / instance variable name. The
      * iDempiere column name follows iDempiere Template format.
@@ -25,9 +25,9 @@ public interface ApiInjectable {
     public String getTableName();
 
     /**
-     * Gets the primary key of the header object.
+     * Gets the document number (primary key) of the object.
      * 
-     * @return Primary key of the header
+     * @return Document number of the object
      */
-    public Object getKey();
+    public Object getDocumentNo();
 }

@@ -7,11 +7,11 @@ package com.sahabatabadi.api;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public interface ApiHeader extends ApiInjectable {
+public interface DocHeader extends Document {
     /**
      * Gets the lines associated with this header object.
      * 
      * @return Line objects as an array
      */
-    public ApiInjectable[] getLines();
+    public Document[] getLines();
 }

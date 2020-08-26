@@ -9,8 +9,8 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
-import com.sahabatabadi.api.ApiHeader;
-import com.sahabatabadi.api.ApiInjectable;
+import com.sahabatabadi.api.DocHeader;
+import com.sahabatabadi.api.Document;
 
 /**
  * Class to represent required information to inject a sales order header into
@@ -21,7 +21,7 @@ import com.sahabatabadi.api.ApiInjectable;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrder implements ApiInjectable, ApiHeader {
+public class SASSalesOrder implements Document, DocHeader {
     // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
      * Length of BP codes.
@@ -212,12 +212,12 @@ public class SASSalesOrder implements ApiInjectable, ApiHeader {
     }
 
     @Override
-    public Object getKey() {
+    public Object getDocumentNo() {
         return this.documentNo;
     }
 
     @Override
-    public ApiInjectable[] getLines() {
+    public Document[] getLines() {
         return this.orderLines;
     }
 }

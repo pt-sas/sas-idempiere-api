@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sahabatabadi.api.ApiInjectable;
+import com.sahabatabadi.api.Document;
 
 /**
  * Class to represent required information to inject a sales order line into SAS
@@ -17,7 +17,7 @@ import com.sahabatabadi.api.ApiInjectable;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrderLine implements ApiInjectable {
+public class SASSalesOrderLine implements Document {
     // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
      * Table name in iDempiere associated with this line object.
@@ -103,7 +103,7 @@ public class SASSalesOrderLine implements ApiInjectable {
     }
 
     @Override
-    public Object getKey() {
+    public Object getDocumentNo() {
         return this.documentNo;
     }
 }

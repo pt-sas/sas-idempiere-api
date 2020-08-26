@@ -37,13 +37,13 @@ public class DocumentInjector {
 
     protected CLogger log = CLogger.getCLogger(getClass());
 
-    private int windowId;
-    private int menuId;
+    private final int windowId;
+    private final int menuId;
 
     private List<GridTab> childs;
     private GridTab headerTab;
 
-    private boolean isError = false;
+    private boolean isError;
     private Trx trx;
     private String trxName;
     private PO masterRecord;
@@ -53,7 +53,7 @@ public class DocumentInjector {
         this.menuId = menuId;
     }
 
-    public boolean injectDocument(ApiHeader headerObj) {
+    public boolean injectDocument(DocHeader headerObj) {
         isError = false;
         trx = null;
         trxName = null;
@@ -63,7 +63,7 @@ public class DocumentInjector {
             return false;
         }
 
-        initGridTab(); // TODO try moving into ctor, see if there's any insertion issue
+        initGridTab();
 
         try {
             createTrx(headerTab);
@@ -83,7 +83,7 @@ public class DocumentInjector {
                 }
             }
 
-            for (ApiInjectable orderLine : headerObj.getLines()) {
+            for (Document orderLine : headerObj.getLines()) {
                 processRecord(orderLineTab, true, orderLine);
             }
         } finally {
@@ -99,18 +99,18 @@ public class DocumentInjector {
         return true;
     }
 
-    private boolean checkDocumentValid(ApiHeader headerObj) {
-        if (headerObj.getKey() == null) {
+    private boolean checkDocumentValid(DocHeader headerObj) {
+        if (headerObj.getDocumentNo() == null) {
             return false;
         }
 
-        ApiInjectable[] lines = headerObj.getLines();
+        Document[] lines = headerObj.getLines();
         if (lines.length < 1) {
             return false;
         }
 
-        for (ApiInjectable line : lines) {
-            if (line.getKey() == null) {
+        for (Document line : lines) {
+            if (line.getDocumentNo() == null) {
                 return false;
             }
         }
@@ -160,7 +160,7 @@ public class DocumentInjector {
     }
 
     // gridTab is either the header tab or the child tab
-    private boolean processRecord(GridTab gridTab, boolean isDetail, ApiInjectable so) {
+    private boolean processRecord(GridTab gridTab, boolean isDetail, Document so) {
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -223,7 +223,7 @@ public class DocumentInjector {
         return true;
     }
 
-    private boolean processRow(GridTab gridTab, Trx trx, ApiInjectable so) {
+    private boolean processRow(GridTab gridTab, Trx trx, Document so) {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();
