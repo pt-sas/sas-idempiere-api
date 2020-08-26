@@ -8,12 +8,28 @@ import org.compiere.util.CLogger;
 
 import com.sahabatabadi.api.DocumentInjector;
 
-public class SalesOrderInjector {	
-    public static final int SALES_ORDER_MENU_ID = 129;
+/**
+ * Class to inject Bizzy Sales Order objects into iDempiere
+ */
+public class SalesOrderInjector {
+    /**
+     * Window ID for Sales Order window in iDempiere
+     */
     public static final int SALES_ORDER_WINDOW_ID = 143;
+
+    /**
+     * Menu ID for Sales Order menu in iDempiere
+     */
+    public static final int SALES_ORDER_MENU_ID = 129;
 
     protected static CLogger log = CLogger.getCLogger(SalesOrderInjector.class);
     
+    /**
+     * Injects the specified Bizzy Sales Order into iDempiere
+     * 
+     * @param bizzySo Bizzy Sales Order object to be injected
+     * @return Document numbers of the documents successfully inserted
+     */
     public String injectSalesOrder(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productId);
@@ -40,6 +56,12 @@ public class SalesOrderInjector {
         return insertedDocNums.toString();
     }
 
+    /**
+     * Helper method to split Bizzy SO lines based on principal and discount
+     * 
+     * @param bizzySoLines array of Bizzy SO lines to be split
+     * @return ArrayList of SO lines split by principal and discount
+     */
     private ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
         HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
