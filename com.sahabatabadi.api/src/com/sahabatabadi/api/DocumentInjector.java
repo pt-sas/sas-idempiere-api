@@ -503,7 +503,73 @@ public class DocumentInjector {
     }
 
     private void insertErrorLog(String documentNo, String tableName, String errorLog) {
-        System.err.println(PLUGIN_PREFIX + errorLog); // TODO insert error line to DB
+        if (log.isLoggable(Level.WARNING))
+            log.warning("Failed to insert document " + documentNo + " in table " + tableName + ": " + errorLog);
+
+        int ERROR_LOG_WINDOW_ID = 2200001;
+        int ERROR_LOG_MENU_ID = 2200138;
+
+        final int windowNo = getNextWindowNo();
+        GridWindowVO errorLogWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, ERROR_LOG_WINDOW_ID,
+                ERROR_LOG_MENU_ID);
+        GridWindow errorLogWindow = new GridWindow(errorLogWindowVO, true);
+        Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", errorLogWindow.isSOTrx());
+
+        List<GridTab> errorLogTabs = new ArrayList<>();
+        for (int i = 0; i < errorLogWindow.getTabCount(); i++) {
+            errorLogWindow.initTab(i);
+            GridTab gTab = errorLogWindow.getTab(i);
+            new GridTabHolder(gTab);
+            errorLogTabs.add(gTab);
+        }
+
+        GridTab errorHeaderTab = errorLogTabs.get(0);
+        GridTab errorDetailTab = errorLogTabs.get(1);
+
+        if (!errorHeaderTab.getTableModel().isOpen()) {
+            errorHeaderTab.getTableModel().open(0);
+        }
+
+        if (!errorHeaderTab.dataNew(false)) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Failed to create new Error Log record");
+            return;
+        }
+
+        errorHeaderTab.navigateCurrent();
+
+        if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Document_No"), documentNo))) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Unable to save in Document No in Error Log record");
+            return;
+        }
+
+        GridField adTableField = errorHeaderTab.getField("AD_Table_ID");
+        String foreignTable = MColumn.get(Env.getCtx(), adTableField.getAD_Column_ID()).getReferenceTableName();
+        int foreignID = resolveForeign(foreignTable, "TableName", tableName, trx);
+        if (foreignID < 0) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Unable to resolve Table in Error Log record");
+            return;
+        }
+
+        if (!"".equals(errorHeaderTab.setValue(adTableField, foreignID))) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Unable to save Table in Error Log record");
+            return;
+        }
+
+        if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Error_Msg"), errorLog))) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Unable to save error message in Error Log record");
+            return;
+        }
+
+        if (!errorHeaderTab.dataSave(false)) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Failed to save new Error Log record");
+            return;
+        }
     }
 
     class GridTabHolder implements DataStatusListener {
