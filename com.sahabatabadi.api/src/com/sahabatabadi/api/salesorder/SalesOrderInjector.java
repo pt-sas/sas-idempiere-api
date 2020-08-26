@@ -30,7 +30,7 @@ public class SalesOrderInjector {
      * @param bizzySo Bizzy Sales Order object to be injected
      * @return Document numbers of the documents successfully inserted
      */
-    public String injectSalesOrder(BizzySalesOrder bizzySo) {
+    public static String injectSalesOrder(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
@@ -62,7 +62,7 @@ public class SalesOrderInjector {
      * @param bizzySoLines array of Bizzy SO lines to be split
      * @return ArrayList of SO lines split by principal and discount
      */
-    private ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
+    private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
         HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
         for (int i = 0; i < bizzySoLines.length; i++) {

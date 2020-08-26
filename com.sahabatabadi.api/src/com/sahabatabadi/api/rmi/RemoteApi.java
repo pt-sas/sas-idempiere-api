@@ -5,7 +5,6 @@ import com.sahabatabadi.api.salesorder.SalesOrderInjector;
 
 public class RemoteApi implements IRemoteApi {
 	public String injectSo(BizzySalesOrder bizzySo) {
-        SalesOrderInjector injector = new SalesOrderInjector();
-        return injector.injectSalesOrder(bizzySo);
+        return SalesOrderInjector.injectSalesOrder(bizzySo);
     }
 }
