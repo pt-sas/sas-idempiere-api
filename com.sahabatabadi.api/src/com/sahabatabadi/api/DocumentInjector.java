@@ -215,7 +215,7 @@ public class DocumentInjector {
             isError = true;
 
             if (e.getMessage() != null) {
-                insertErrorLog(e.getMessage());
+                insertErrorLog(so.getDocumentNo(), so.getTableName(), e.getMessage());
             }
             return false;
         }
@@ -380,7 +380,7 @@ public class DocumentInjector {
             }
         } catch (AdempiereException e) {
             if (e.getMessage() != null) {
-                insertErrorLog(e.getMessage());
+                insertErrorLog(so.getDocumentNo(), so.getTableName(), e.getMessage());
             }
 
             return false;
@@ -455,12 +455,8 @@ public class DocumentInjector {
 
     private String getColumnName(boolean isKey, boolean isForeign, boolean isDetail, String headName) {
         if (isKey) {
-            if (headName.indexOf("/") > 0) {
-                if (headName.endsWith("K")) {
-                    headName = headName.substring(0, headName.length() - 2);
-                } else {
-                    insertErrorLog(Msg.getMsg(Env.getCtx(), "ColumnKey") + " " + headName); // missing Key
-                }
+            if (headName.indexOf("/") > 0 && headName.endsWith("K")) {
+                headName = headName.substring(0, headName.length() - 2);
             }
         }
 
@@ -506,7 +502,7 @@ public class DocumentInjector {
         return id;
     }
 
-    private void insertErrorLog(String errorLog) {
+    private void insertErrorLog(String documentNo, String tableName, String errorLog) {
         System.err.println(PLUGIN_PREFIX + errorLog); // TODO insert error line to DB
     }
 
