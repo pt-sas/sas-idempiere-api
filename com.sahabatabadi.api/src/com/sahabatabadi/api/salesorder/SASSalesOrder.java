@@ -212,7 +212,7 @@ public class SASSalesOrder implements Document, DocHeader {
     }
 
     @Override
-    public Object getDocumentNo() {
+    public String getDocumentNo() {
         return this.documentNo;
     }
 

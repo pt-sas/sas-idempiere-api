@@ -103,7 +103,7 @@ public class SASSalesOrderLine implements Document {
     }
 
     @Override
-    public Object getDocumentNo() {
+    public String getDocumentNo() {
         return this.documentNo;
     }
 }

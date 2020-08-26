@@ -29,5 +29,5 @@ public interface Document {
      * 
      * @return Document number of the object
      */
-    public Object getDocumentNo();
+    public String getDocumentNo();
 }
