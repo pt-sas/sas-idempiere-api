@@ -9,7 +9,10 @@ import org.compiere.util.CLogger;
 import com.sahabatabadi.api.DocumentInjector;
 
 /**
- * Class to inject Bizzy Sales Order objects into iDempiere
+ * Class to inject Bizzy Sales Order objects into iDempiere *
+ * 
+ * @author Nicholas Alexander Limit
+ * @version 1.0
  */
 public class SalesOrderInjector {
     /**
