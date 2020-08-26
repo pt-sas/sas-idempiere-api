@@ -197,8 +197,9 @@ public class DocumentInjector {
 
                 String info = (ppE != null) ? info = ppE.getName() : "";
 
+                // Error:  Could not save changes:  (INFO)
                 String errMsg = String.format("%s %s (%s)", Msg.getMsg(Env.getCtx(), "Error"),
-                        Msg.getMsg(Env.getCtx(), "SaveError"), info);
+                        Msg.getMsg(Env.getCtx(), "SaveError"), info); // LOGMSG
                 throw new AdempiereException(errMsg);
             }
 
@@ -209,7 +210,7 @@ public class DocumentInjector {
             }
 
             if (log.isLoggable(Level.INFO))
-                log.info(PLUGIN_PREFIX + Msg.getMsg(Env.getCtx(), "Inserted") + " " + po.toString());
+                log.info(PLUGIN_PREFIX + "Inserted " + po.toString());
         } catch (AdempiereException e) {
             gridTab.dataIgnore();
             isError = true;
@@ -271,6 +272,7 @@ public class DocumentInjector {
                                 throw new AdempiereException(errMsg);
                             }
                         } else if (value != null) {
+                            // Different parent value: Master value "A" Detail value "B"
                             String errMsg = soField.getName() + " - " + Msg.getMsg(Env.getCtx(), "DiffParentValue",
                                     new Object[] { masterRecord.get_Value(foreignColumn).toString(), value }); // LOGMSG
                             throw new AdempiereException(errMsg);
@@ -292,6 +294,7 @@ public class DocumentInjector {
                         if ("AD_Ref_List".equals(foreignTable)) {
                             idS = resolveForeignList(column, foreignColumn, value, trx);
                             if (idS == null) {
+                                // "A" not resolved = ("B")
                                 String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
                                         new Object[] { columnName, value });
                                 throw new AdempiereException(errMsg);
@@ -349,6 +352,7 @@ public class DocumentInjector {
                         if (field.isParentValue()) {
                             int actualID = (Integer) field.getValue();
                             if (actualID != foreignID) {
+                                // ERROR: "A" parent cannot be changed
                                 String errMsg = Msg.getMsg(Env.getCtx(), "ParentCannotChange",
                                         new Object[] { soField.getName() }); // LOGMSG
                                 throw new AdempiereException(errMsg);
@@ -504,7 +508,7 @@ public class DocumentInjector {
 
     private void insertErrorLog(String documentNo, String tableName, String errorLog) {
         if (log.isLoggable(Level.WARNING))
-            log.warning("Failed to insert document " + documentNo + " in table " + tableName + ": " + errorLog);
+            log.warning("Failed to insert document " + documentNo + " in table " + tableName + ". Error message: " + errorLog);
 
         int ERROR_LOG_WINDOW_ID = 2200001;
         int ERROR_LOG_MENU_ID = 2200138;
@@ -524,7 +528,7 @@ public class DocumentInjector {
         }
 
         GridTab errorHeaderTab = errorLogTabs.get(0);
-        GridTab errorDetailTab = errorLogTabs.get(1);
+        // GridTab errorDetailTab = errorLogTabs.get(1);
 
         if (!errorHeaderTab.getTableModel().isOpen()) {
             errorHeaderTab.getTableModel().open(0);
