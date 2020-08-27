@@ -66,10 +66,7 @@ public class DocumentInjector {
         try {
             createTrx(headerTab);
 
-            boolean headerRecordProcessed = processRecord(headerTab, false, headerObj);
-            if (!headerRecordProcessed) {
-                return false;
-            }
+            processRecord(headerTab, false, headerObj); // throws SASApiException upon failure
 
             // process detail
             String childTableName = headerObj.getLines()[0].getTableName();
@@ -86,6 +83,7 @@ public class DocumentInjector {
             }
         } catch (SASApiException e) {
             insertErrorLog(e.getBadDocument(), e.getMessage());
+            return false;
         } finally {
             closeTrx(headerTab);
 
@@ -160,7 +158,7 @@ public class DocumentInjector {
     }
 
     // gridTab is either the header tab or the child tab
-    private boolean processRecord(GridTab gridTab, boolean isDetail, Document so) throws SASApiException {
+    private void processRecord(GridTab gridTab, boolean isDetail, Document so) throws SASApiException {
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -183,10 +181,7 @@ public class DocumentInjector {
                 }
             }
 
-            boolean isRowProcessed = processRow(gridTab, trx, so);
-            if (!isRowProcessed) {
-                throw new SASApiException(so); // TODO elaborate error message
-            }
+            processRow(gridTab, trx, so); // throws SASApiException upon failure
 
             boolean dataSaveSuccess = gridTab.dataSave(false);
             if (!dataSaveSuccess) {
@@ -215,11 +210,9 @@ public class DocumentInjector {
 
             throw e;
         }
-
-        return true;
     }
 
-    private boolean processRow(GridTab gridTab, Trx trx, Document so) throws SASApiException {
+    private void processRow(GridTab gridTab, Trx trx, Document so) throws SASApiException {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();
@@ -368,8 +361,6 @@ public class DocumentInjector {
         } catch (SASApiException e) {
             throw e;
         }
-
-        return true;
     }
 
     @SuppressWarnings("unchecked")
