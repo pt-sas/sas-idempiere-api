@@ -556,7 +556,15 @@ public class DocumentInjector {
                 if (log.isLoggable(Level.WARNING))
                     log.warning("Failed to save new Error Log record");
                 return;
-            }    		
+            }
+
+            if (so instanceof DocHeader) {
+                DocHeader header = (DocHeader) so;
+                Document[] lines = header.getLines();
+                for (Document line : lines) {
+                    insertErrorLog(line, "Caused by error in header record " + so.getDocumentNo());
+                }
+            }
     	} catch (Exception e) {
     		StringBuilder sb = new StringBuilder("Exception when inserting into error log! ");
     		
