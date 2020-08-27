@@ -172,8 +172,8 @@ public class DocumentInjector {
 
             boolean dataNewSuccess = gridTab.dataNew(false);
             if (!dataNewSuccess) {
-                String errMsg = "[" + gridTab.getName() + "] - Was not able to create a new record!";
-                throw new AdempiereException(errMsg);
+                throw new AdempiereException(
+                        String.format("Failed to create a new record in GridTab [%s]", gridTab.getName()));
             }
 
             gridTab.navigateCurrent();
@@ -197,10 +197,8 @@ public class DocumentInjector {
 
                 String info = (ppE != null) ? info = ppE.getName() : "";
 
-                // Error:  Could not save changes:  (INFO)
-                String errMsg = String.format("%s %s (%s)", Msg.getMsg(Env.getCtx(), "Error"),
-                        Msg.getMsg(Env.getCtx(), "SaveError"), info); // LOGMSG
-                throw new AdempiereException(errMsg);
+                throw new AdempiereException(
+                        String.format("Failed to save record in GridTab [%s]", gridTab.getName()));
             }
 
             PO po = gridTab.getTableModel().getPO(gridTab.getCurrentRow());
@@ -238,9 +236,8 @@ public class DocumentInjector {
                 try {
                     value = soField.get(so);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                    String errMsg = "Java Reflection error when accessing [" + soField.getName() + "] field in ["
-                            + so.getClass() + "] class.";
-                    throw new AdempiereException(errMsg);
+                    throw new AdempiereException(String.format("Java Reflection error when accessing field [%s] in class [%s]!\n %s",
+                            soField.getName(), so.getClass(), e.getMessage()));
                 }
 
                 if (value == null) {
@@ -267,22 +264,21 @@ public class DocumentInjector {
                 if (field.isParentValue()) {
                     if (isForeign && masterRecord != null) {
                         if (masterRecord.get_Value(foreignColumn).toString().equals(value)) {
-                            String errMsg = gridTab.setValue(field, masterRecord.get_ID()); // LOGMSG
+                            String errMsg = gridTab.setValue(field, masterRecord.get_ID());
                             if (!errMsg.equals("")) {
                                 throw new AdempiereException(errMsg);
                             }
                         } else if (value != null) {
-                            // Different parent value: Master value "A" Detail value "B"
-                            String errMsg = soField.getName() + " - " + Msg.getMsg(Env.getCtx(), "DiffParentValue",
-                                    new Object[] { masterRecord.get_Value(foreignColumn).toString(), value }); // LOGMSG
-                            throw new AdempiereException(errMsg);
+                            throw new AdempiereException(String.format(
+                                    "Header and detail have different key values! Header value: [%s], detail value: [%s]",
+                                    masterRecord.get_Value(foreignColumn).toString(), value));
                         }
                     } else if (isForeign && masterRecord == null && gridTab.getTabLevel() > 0) {
                         Object master = gridTab.getParentTab().getValue(foreignColumn);
                         if (master != null && value != null && !master.toString().equals(value)) {
-                            String errMsg = soField.getName() + " - " + Msg.getMsg(Env.getCtx(), "DiffParentValue",
-                                    new Object[] { master.toString(), value }); // LOGMSG
-                            throw new AdempiereException(errMsg);
+                            throw new AdempiereException(String.format(
+                                    "Header and detail have different key values! Header value: [%s], detail value: [%s]",
+                                    master.toString(), value));
                         }
                     } else if (masterRecord == null && isDetail) {
                         MColumn column = MColumn.get(Env.getCtx(), field.getAD_Column_ID());
@@ -294,19 +290,18 @@ public class DocumentInjector {
                         if ("AD_Ref_List".equals(foreignTable)) {
                             idS = resolveForeignList(column, foreignColumn, value, trx);
                             if (idS == null) {
-                                // "A" not resolved = ("B")
-                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
-                                        new Object[] { columnName, value });
-                                throw new AdempiereException(errMsg);
+                                throw new AdempiereException(String.format(
+                                        "Failed to resolve record ID for value [%s] in column [%s] of table [%s]",
+                                        value, foreignColumn, foreignTable));
                             }
 
                             logMsg = gridTab.setValue(field, idS); // LOGMSG
                         } else {
                             id = resolveForeign(foreignTable, foreignColumn, value, trx);
                             if (id < 0) {
-                                String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
-                                        new Object[] { columnName, value });
-                                throw new AdempiereException(errMsg);
+                                throw new AdempiereException(String.format(
+                                        "Failed to resolve record ID for value [%s] in column [%s] of table [%s]",
+                                        value, foreignColumn, foreignTable));
                             }
 
                             logMsg = gridTab.setValue(field, id); // LOGMSG
@@ -332,9 +327,9 @@ public class DocumentInjector {
                     if ("AD_Ref_List".equals(foreignTable)) {
                         String idS = resolveForeignList(column, foreignColumn, value, trx);
                         if (idS == null) {
-                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
-                                    new Object[] { soField.getName(), value }); // LOGMSG
-                            throw new AdempiereException(errMsg);
+                            throw new AdempiereException(String.format(
+                                    "Failed to resolve record ID for value [%s] in column [%s] of table [%s]", value,
+                                    foreignColumn, foreignTable));
                         }
 
                         setValue = idS;
@@ -342,9 +337,9 @@ public class DocumentInjector {
                         int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx);
 
                         if (foreignID < 0) {
-                            String errMsg = Msg.getMsg(Env.getCtx(), "ForeignNotResolved",
-                                    new Object[] { soField.getName(), value }); // LOGMSG
-                            throw new AdempiereException(errMsg);
+                            throw new AdempiereException(String.format(
+                                    "Failed to resolve record ID for value [%s] in column [%s] of table [%s]", value,
+                                    foreignColumn, foreignTable));
                         }
 
                         setValue = foreignID;
