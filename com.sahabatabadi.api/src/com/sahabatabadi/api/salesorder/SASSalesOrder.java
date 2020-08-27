@@ -1,5 +1,7 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -219,5 +221,57 @@ public class SASSalesOrder implements Document, DocHeader {
     @Override
     public Document[] getLines() {
         return this.orderLines;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Field soField : this.getClass().getDeclaredFields()) {
+            if (!Modifier.isPublic(soField.getModifiers())) {
+                continue; // non-public fields
+            }
+
+            String columnName = this.getColumnName(soField.getName());
+            if (columnName == null) {
+                continue; // non-SO fields, e.g. constants, logger, etc.
+            }
+
+            Object value = null;
+            try {
+                value = soField.get(this);
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                return this.toStringNoReflection();
+            }
+
+            if (value == null) {
+                continue;
+            }
+
+            sb.append(columnName + ": " + value + "\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Helper method to compute toString without using Reflection as a failsafe.
+     * 
+     * @return contents of the SO header
+     */
+    private String toStringNoReflection() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("AD_Org_ID[Name]: " + this.org);
+        sb.append("DocumentNo/K: " + this.documentNo);
+        sb.append("Description: " + this.description);
+        sb.append("C_DocTypeTarget_ID[Name]: " + this.docType);
+        sb.append("DateOrdered: " + this.dateOrdered);
+        sb.append("DatePromised: " + this.datePromised);
+        sb.append("C_BPartner_ID[Value]: " + this.bpCode);
+        sb.append("Bill_BPartner_ID[Value]: " + this.invoiceBpCode);
+        sb.append("C_BPartner_Location_ID[Name]: " + this.bpLocation);
+        sb.append("Bill_Location_ID[Name]: " + this.invoiceBpLocation);
+        sb.append("M_Warehouse_ID[Value]: " + this.warehouse);
+        sb.append("AD_OrgTrx_ID[Name]: " + this.orgTrx);
+        return sb.toString();
     }
 }
