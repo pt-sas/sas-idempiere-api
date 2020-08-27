@@ -1,5 +1,7 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
@@ -144,18 +146,11 @@ public class SASSalesOrderLine implements Document {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("AD_Org_ID[Name]: " + this.org);
-        sb.append("DocumentNo/K: " + this.documentNo);
-        sb.append("Description: " + this.description);
-        sb.append("C_DocTypeTarget_ID[Name]: " + this.docType);
-        sb.append("DateOrdered: " + this.dateOrdered);
-        sb.append("DatePromised: " + this.datePromised);
-        sb.append("C_BPartner_ID[Value]: " + this.bpCode);
-        sb.append("Bill_BPartner_ID[Value]: " + this.invoiceBpCode);
-        sb.append("C_BPartner_Location_ID[Name]: " + this.bpLocation);
-        sb.append("Bill_Location_ID[Name]: " + this.invoiceBpLocation);
-        sb.append("M_Warehouse_ID[Value]: " + this.warehouse);
-        sb.append("AD_OrgTrx_ID[Name]: " + this.orgTrx);
+        sb.append("C_OrderLine>Line" + this.lineNo);
+        sb.append("C_OrderLine>M_Product_ID[Value]" + this.productId);
+        sb.append("C_OrderLine>QtyEntered" + this.quantity);
+        sb.append("C_OrderLine>C_Order_ID[DocumentNo]/K" + this.documentNo);
+        sb.append("C_OrderLine>DatePromised" + this.datePromised);
         return sb.toString();
     }
 }
