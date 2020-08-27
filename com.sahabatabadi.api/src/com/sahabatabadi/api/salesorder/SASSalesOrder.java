@@ -2,6 +2,7 @@ package com.sahabatabadi.api.salesorder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,7 +25,6 @@ import com.sahabatabadi.api.Document;
  * @version 1.0
  */
 public class SASSalesOrder implements Document, DocHeader {
-    // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
      * Length of BP codes.
      */
@@ -54,6 +54,8 @@ public class SASSalesOrder implements Document, DocHeader {
      * @see org.compiere.util.DB#getDocumentNo
      */
     public String documentNo;
+
+    // private String poReference;
 
     /**
      * Raw description of the SO header. Can be left empty.
@@ -102,11 +104,35 @@ public class SASSalesOrder implements Document, DocHeader {
      */
     public String invoiceBpLocation;
 
+    // private String bpContact;
+    // private String invoiceBpContact;
+    // private String deliveryRule;
+    // private String priorityRule;
+
     /**
      * Name of the default warehouse of the associated {@link #org}. Has to match
      * entries in the {@code name} field in iDempiere's {@code M_Warehouse} table.
      */
     public String warehouse;
+
+    // private String dropshipBpCode;
+    // private String dropshipBpLocation;
+    // private String dropshipBpContact;
+    // private String deliveryViaRule;
+    // private String shipperName;
+    // private String freightCostRule;
+    // private String freightCategory;
+    // private BigDecimal freightAmount;
+    // private boolean isPriviledgedRate;
+    // private String invoiceRule;
+    // private String pricelist;
+    // private String currencyConversionType;
+    // private String chargeType;
+    // private boolean chargeAmount;
+    // private String paymentTerm;
+    // private String promotionCode;
+    // private String project;
+    // private String campaign;
 
     /**
      * Org Trx's full name. Has to match entries in the {@code name} field in
@@ -114,6 +140,17 @@ public class SASSalesOrder implements Document, DocHeader {
      * {@code 'Y'}.
      */
     public String orgTrx;
+
+    // private String costCenter;
+    // private String cashplanLine;
+    // private boolean isCustWalkIn;
+    // private String flnStatus;
+    // private String picklistNote;
+    // private String shipmentNote;
+    // private String invoiceNote;
+    // private String notaClaimNo;
+    // private Date notaClaimDate;
+    // private String reasonClaim;
 
     /**
      * Array of {@link SASSalesOrderLine} object associated with this header object.
@@ -138,6 +175,7 @@ public class SASSalesOrder implements Document, DocHeader {
         HashMap<String, String> tempFieldColumnMap = new HashMap<>();
         tempFieldColumnMap.put("org", "AD_Org_ID[Name]");
         tempFieldColumnMap.put("documentNo", "DocumentNo/K");
+        // tempFieldColumnMap.put("poReference", "POReference");
         tempFieldColumnMap.put("description", "Description");
         tempFieldColumnMap.put("docType", "C_DocTypeTarget_ID[Name]");
         tempFieldColumnMap.put("dateOrdered", "DateOrdered");
@@ -146,8 +184,40 @@ public class SASSalesOrder implements Document, DocHeader {
         tempFieldColumnMap.put("invoiceBpCode", "Bill_BPartner_ID[Value]");
         tempFieldColumnMap.put("bpLocation", "C_BPartner_Location_ID[Name]");
         tempFieldColumnMap.put("invoiceBpLocation", "Bill_Location_ID[Name]");
+        // tempFieldColumnMap.put("bpContact", "AD_User_ID[Name]");
+        // tempFieldColumnMap.put("invoiceBpContact", "Bill_User_ID[Name]");
+        // tempFieldColumnMap.put("deliveryRule", "DeliveryRule");
+        // tempFieldColumnMap.put("priorityRule", "PriorityRule");
         tempFieldColumnMap.put("warehouse", "M_Warehouse_ID[Value]");
+        // tempFieldColumnMap.put("dropshipBpCode", "DropShip_BPartner_ID[Value]");
+        // tempFieldColumnMap.put("dropshipBpLocation", "DropShip_Location_ID[Name]");
+        // tempFieldColumnMap.put("dropshipBpContact", "DropShip_User_ID[Name]");
+        // tempFieldColumnMap.put("deliveryViaRule", "DeliveryViaRule");
+        // tempFieldColumnMap.put("shipperName", "M_Shipper_ID[Name]");
+        // tempFieldColumnMap.put("freightCostRule", "FreightCostRule");
+        // tempFieldColumnMap.put("freightCategory", "M_FreightCategory_ID[Value]");
+        // tempFieldColumnMap.put("freightAmount", "FreightAmt");
+        // tempFieldColumnMap.put("isPriviledgedRate", "IsPriviledgedRate");
+        // tempFieldColumnMap.put("invoiceRule", "InvoiceRule");
+        // tempFieldColumnMap.put("pricelist", "M_PriceList_ID[Name]");
+        // tempFieldColumnMap.put("currencyConversionType", "C_ConversionType_ID[Value]");
+        // tempFieldColumnMap.put("chargeType", "C_Charge_ID[Name]");
+        // tempFieldColumnMap.put("chargeAmount", "ChargeAmt");
+        // tempFieldColumnMap.put("paymentTerm", "C_PaymentTerm_ID[Value]");
+        // tempFieldColumnMap.put("promotionCode", "PromotionCode");
+        // tempFieldColumnMap.put("project", "C_Project_ID[Value]");
+        // tempFieldColumnMap.put("campaign", "C_Campaign_ID[Value]");
         tempFieldColumnMap.put("orgTrx", "AD_OrgTrx_ID[Name]");
+        // tempFieldColumnMap.put("costCenter", "User1_ID[Value]");
+        // tempFieldColumnMap.put("cashplanLine", "C_CashPlanLine_ID[Name]");
+        // tempFieldColumnMap.put("isCustWalkIn", "IsTest");
+        // tempFieldColumnMap.put("flnStatus", "FLNStatus");
+        // tempFieldColumnMap.put("picklistNote", "PickListNote");
+        // tempFieldColumnMap.put("shipmentNote", "ShipmentNote");
+        // tempFieldColumnMap.put("invoiceNote", "InvoiceNote");
+        // tempFieldColumnMap.put("notaClaimNo", "NCNo");
+        // tempFieldColumnMap.put("notaClaimDate", "NCDate");
+        // tempFieldColumnMap.put("reasonClaim", "reason");
         fieldColumnMap = Collections.unmodifiableMap(tempFieldColumnMap);
     }
 

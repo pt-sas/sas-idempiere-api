@@ -20,7 +20,6 @@ import com.sahabatabadi.api.Document;
  * @version 1.0
  */
 public class SASSalesOrderLine implements Document {
-    // TODO add the rest of the fields, can be null. Convert primitives to Object.
     /**
      * Table name in iDempiere associated with this line object.
      */
@@ -39,10 +38,27 @@ public class SASSalesOrderLine implements Document {
      */
     public String productId;
 
+    // private String chargeType;
+
     /**
      * Quantity of the product being ordered.
      */
     public BigDecimal quantity;
+
+    // private String uom;
+    // private BigDecimal priceEntered;
+    // private String taxScheme;
+    // private String description;
+    // private BigDecimal listPrice;
+    // private BigDecimal discountPercent;
+    // private BigDecimal freightAmt;
+    // private String shipperName;
+    // private String project;
+    // private String activity;
+    // private String campaign;
+    // private String orgTrx;
+    // private String costCenter;
+    // private boolean processed;
 
     /**
      * Has to exactly match {@link SASSalesOrder#documentNo} in the header.
@@ -53,6 +69,12 @@ public class SASSalesOrderLine implements Document {
      * Has to exactly match {@link SASSalesOrder#datePromised} in the header.
      */
     public Date datePromised;
+
+    // private String attributeSetInstance;
+    // private String resourceAssignment;
+    // private String sourceOrderLine;
+    // private String discountScheme;
+    // private boolean affectPromo;
 
     /**
      * SO header associated with this SO line.
@@ -70,9 +92,29 @@ public class SASSalesOrderLine implements Document {
         HashMap<String, String> tempFieldColumnMap = new HashMap<>();
         tempFieldColumnMap.put("lineNo", "C_OrderLine>Line");
         tempFieldColumnMap.put("productId", "C_OrderLine>M_Product_ID[Value]");
+        // tempFieldColumnMap.put("chargeType", "C_OrderLine>C_Charge_ID[Name]");
         tempFieldColumnMap.put("quantity", "C_OrderLine>QtyEntered");
+        // tempFieldColumnMap.put("uom", "C_OrderLine>C_UOM_ID[Name]");
+        // tempFieldColumnMap.put("priceEntered", "C_OrderLine>PriceEntered");
+        // tempFieldColumnMap.put("taxScheme", "C_OrderLine>C_Tax_ID[Name]");
+        // tempFieldColumnMap.put("description", "C_OrderLine>Description");
+        // tempFieldColumnMap.put("listPrice", "C_OrderLine>PriceList");
+        // tempFieldColumnMap.put("discountPercent", "C_OrderLine>Discount");
+        // tempFieldColumnMap.put("freightAmt", "C_OrderLine>FreightAmt");
+        // tempFieldColumnMap.put("shipperName", "C_OrderLine>M_Shipper_ID[Name]");
+        // tempFieldColumnMap.put("project", "C_OrderLine>C_Project_ID[Value]");
+        // tempFieldColumnMap.put("activity", "C_OrderLine>C_Activity_ID[Value]");
+        // tempFieldColumnMap.put("campaign", "C_OrderLine>C_Campaign_ID[Value]");
+        // tempFieldColumnMap.put("orgTrx", "C_OrderLine>AD_OrgTrx_ID[Name]");
+        // tempFieldColumnMap.put("costCenter", "C_OrderLine>User1_ID[Value]");
+        // tempFieldColumnMap.put("processed", "C_OrderLine>Processed");
         tempFieldColumnMap.put("documentNo", "C_OrderLine>C_Order_ID[DocumentNo]/K");
         tempFieldColumnMap.put("datePromised", "C_OrderLine>DatePromised");
+        // tempFieldColumnMap.put("attributeSetInstance", "C_OrderLine>M_AttributeSetInstance_ID");
+        // tempFieldColumnMap.put("resourceAssignment", "C_OrderLine>S_ResourceAssignment_ID");
+        // tempFieldColumnMap.put("sourceOrderLine", "C_OrderLine>Source_OrderLine_ID");
+        // tempFieldColumnMap.put("discountScheme", "C_OrderLine>SAS_DiscountList_ID[Value]");
+        // tempFieldColumnMap.put("affectPromo", "C_OrderLine>IsAffectPromo");
         fieldColumnMap = Collections.unmodifiableMap(tempFieldColumnMap);
     }
 
