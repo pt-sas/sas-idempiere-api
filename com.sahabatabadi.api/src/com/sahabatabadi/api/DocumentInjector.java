@@ -263,7 +263,8 @@ public class DocumentInjector {
                 GridField field = gridTab.getField(columnName);
                 if (field.isParentValue()) {
                     if (isForeign && masterRecord != null) {
-                        if (masterRecord.get_Value(foreignColumn).toString().equals(value)) {
+                        Object masterKey = masterRecord.get_Value(foreignColumn);
+                        if (masterKey != null && masterKey.toString().equals(value)) {
                             String errMsg = gridTab.setValue(field, masterRecord.get_ID());
                             if (!errMsg.equals("")) {
                                 throw new AdempiereException(errMsg);
@@ -280,31 +281,31 @@ public class DocumentInjector {
                                     "Header and detail have different key values! Header value: [%s], detail value: [%s]",
                                     master.toString(), value));
                         }
-                    } else if (masterRecord == null && isDetail) {
+                    }
+
+                    if (masterRecord == null && isDetail) {
                         MColumn column = MColumn.get(Env.getCtx(), field.getAD_Column_ID());
                         String foreignTable = column.getReferenceTableName();
-                        String idS = null;
-                        int id = -1;
 
                         String logMsg = null;
                         if ("AD_Ref_List".equals(foreignTable)) {
-                            idS = resolveForeignList(column, foreignColumn, value, trx);
+                            String idS = resolveForeignList(column, foreignColumn, value, trx);
                             if (idS == null) {
                                 throw new AdempiereException(String.format(
                                         "Failed to resolve record ID for value [%s] in column [%s] of table [%s]",
                                         value, foreignColumn, foreignTable));
                             }
 
-                            logMsg = gridTab.setValue(field, idS); // LOGMSG
+                            logMsg = gridTab.setValue(field, idS);
                         } else {
-                            id = resolveForeign(foreignTable, foreignColumn, value, trx);
+                            int id = resolveForeign(foreignTable, foreignColumn, value, trx);
                             if (id < 0) {
                                 throw new AdempiereException(String.format(
                                         "Failed to resolve record ID for value [%s] in column [%s] of table [%s]",
                                         value, foreignColumn, foreignTable));
                             }
 
-                            logMsg = gridTab.setValue(field, id); // LOGMSG
+                            logMsg = gridTab.setValue(field, id);
                         }
 
                         if (logMsg == null || !logMsg.equals("")) {
@@ -343,16 +344,6 @@ public class DocumentInjector {
                         }
 
                         setValue = foreignID;
-
-                        if (field.isParentValue()) {
-                            int actualID = (Integer) field.getValue();
-                            if (actualID != foreignID) {
-                                // ERROR: "A" parent cannot be changed
-                                String errMsg = Msg.getMsg(Env.getCtx(), "ParentCannotChange",
-                                        new Object[] { soField.getName() }); // LOGMSG
-                                throw new AdempiereException(errMsg);
-                            }
-                        }
                     }
                 } else {
                     if (value != null) {
@@ -369,7 +360,7 @@ public class DocumentInjector {
                 if (setValue != null) {
                     Object oldValue = gridTab.getValue(field);
                     if (isValueChanged(oldValue, setValue)) {
-                        String errMsg = gridTab.setValue(field, setValue); // LOGMSG
+                        String errMsg = gridTab.setValue(field, setValue);
 
                         if (!errMsg.equals("")) {
                             throw new AdempiereException(errMsg);
