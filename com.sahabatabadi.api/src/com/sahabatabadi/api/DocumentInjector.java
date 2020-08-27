@@ -303,7 +303,7 @@ public class DocumentInjector {
                         if (logMsg == null || !logMsg.equals("")) {
                             throw new SASApiException(so, String.format(
                                     "Error setting value [%s] in field [%s]. Error message: %s",
-                                    setValue field.getColumnName(), logMsg));
+                                    setValue, field.getColumnName(), logMsg));
                         }
                     }
 
@@ -345,8 +345,6 @@ public class DocumentInjector {
                             value = new Timestamp(((java.util.Date) value).getTime());
                         }
 
-                        // TODO ensure field.getDisplayType() != DisplayType.Payment, !=
-                        // DisplayType.Button
                         setValue = value;
                     }
                 }
