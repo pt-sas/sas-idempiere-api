@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import org.adempiere.base.Core;
-import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.DataStatusListener;
 import org.compiere.model.GridField;
@@ -85,6 +84,8 @@ public class DocumentInjector {
             for (Document orderLine : headerObj.getLines()) {
                 processRecord(orderLineTab, true, orderLine);
             }
+        } catch (SASApiException e) {
+            insertErrorLog(e.getBadDocument(), e.getMessage());
         } finally {
             closeTrx(headerTab);
 
@@ -159,7 +160,7 @@ public class DocumentInjector {
     }
 
     // gridTab is either the header tab or the child tab
-    private boolean processRecord(GridTab gridTab, boolean isDetail, Document so) {
+    private boolean processRecord(GridTab gridTab, boolean isDetail, Document so) throws SASApiException {
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -171,7 +172,7 @@ public class DocumentInjector {
 
             boolean dataNewSuccess = gridTab.dataNew(false);
             if (!dataNewSuccess) {
-                throw new AdempiereException(
+                throw new SASApiException(so, 
                         String.format("Failed to create a new record in GridTab [%s]", gridTab.getName()));
             }
 
@@ -184,7 +185,7 @@ public class DocumentInjector {
 
             boolean isRowProcessed = processRow(gridTab, trx, so);
             if (!isRowProcessed) {
-                throw new AdempiereException();
+                throw new SASApiException(so); // TODO elaborate error message
             }
 
             boolean dataSaveSuccess = gridTab.dataSave(false);
@@ -196,7 +197,7 @@ public class DocumentInjector {
 
                 String info = (ppE != null) ? info = ppE.getName() : "";
 
-                throw new AdempiereException(
+                throw new SASApiException(so, 
                         String.format("Failed to save record in GridTab [%s]\n%s", gridTab.getName(), info));
             }
 
@@ -208,20 +209,17 @@ public class DocumentInjector {
 
             if (log.isLoggable(Level.INFO))
                 log.info(PLUGIN_PREFIX + "Inserted " + po.toString());
-        } catch (AdempiereException e) {
+        } catch (SASApiException e) {
             gridTab.dataIgnore();
             isError = true;
 
-            if (e.getMessage() != null) {
-                insertErrorLog(so, e.getMessage());
-            }
-            return false;
+            throw e;
         }
 
         return true;
     }
 
-    private boolean processRow(GridTab gridTab, Trx trx, Document so) {
+    private boolean processRow(GridTab gridTab, Trx trx, Document so) throws SASApiException {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();
@@ -235,7 +233,7 @@ public class DocumentInjector {
                 try {
                     value = soField.get(so);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                    throw new AdempiereException(String.format("Java Reflection error when accessing field [%s] in class [%s]!\n%s",
+                    throw new SASApiException(so, String.format("Java Reflection error when accessing field [%s] in class [%s]!\n%s",
                             soField.getName(), so.getClass(), e.getMessage()));
                 }
 
@@ -266,17 +264,17 @@ public class DocumentInjector {
                         if (masterKey != null && masterKey.toString().equals(value)) {
                             String errMsg = gridTab.setValue(field, masterRecord.get_ID());
                             if (!errMsg.equals("")) {
-                                throw new AdempiereException(errMsg);
+                                throw new SASApiException(so, errMsg); // TODO elaborate error message
                             }
                         } else if (value != null) {
-                            throw new AdempiereException(String.format(
+                            throw new SASApiException(so, String.format(
                                     "Header and detail have different key values! Header value: [%s], detail value: [%s]",
                                     masterRecord.get_Value(foreignColumn).toString(), value));
                         }
                     } else if (isForeign && masterRecord == null && gridTab.getTabLevel() > 0) {
                         Object master = gridTab.getParentTab().getValue(foreignColumn);
                         if (master != null && value != null && !master.toString().equals(value)) {
-                            throw new AdempiereException(String.format(
+                            throw new SASApiException(so, String.format(
                                     "Header and detail have different key values! Header value: [%s], detail value: [%s]",
                                     master.toString(), value));
                         }
@@ -290,7 +288,7 @@ public class DocumentInjector {
                         if ("AD_Ref_List".equals(foreignTable)) {
                             String idS = resolveForeignList(column, foreignColumn, value, trx);
                             if (idS == null) {
-                                throw new AdempiereException(String.format(
+                                throw new SASApiException(so, String.format(
                                         "Failed to resolve record ID for value [%s] in column [%s] of table [%s]",
                                         value, foreignColumn, foreignTable));
                             }
@@ -299,7 +297,7 @@ public class DocumentInjector {
                         } else {
                             int id = resolveForeign(foreignTable, foreignColumn, value, trx);
                             if (id < 0) {
-                                throw new AdempiereException(String.format(
+                                throw new SASApiException(so, String.format(
                                         "Failed to resolve record ID for value [%s] in column [%s] of table [%s]",
                                         value, foreignColumn, foreignTable));
                             }
@@ -308,7 +306,7 @@ public class DocumentInjector {
                         }
 
                         if (logMsg == null || !logMsg.equals("")) {
-                            throw new AdempiereException();
+                            throw new SASApiException(so); // TODO elaborate error message
                         }
                     }
 
@@ -327,7 +325,7 @@ public class DocumentInjector {
                     if ("AD_Ref_List".equals(foreignTable)) {
                         String idS = resolveForeignList(column, foreignColumn, value, trx);
                         if (idS == null) {
-                            throw new AdempiereException(String.format(
+                            throw new SASApiException(so, String.format(
                                     "Failed to resolve record ID for value [%s] in column [%s] of table [%s]", value,
                                     foreignColumn, foreignTable));
                         }
@@ -337,7 +335,7 @@ public class DocumentInjector {
                         int foreignID = resolveForeign(foreignTable, foreignColumn, value, trx);
 
                         if (foreignID < 0) {
-                            throw new AdempiereException(String.format(
+                            throw new SASApiException(so, String.format(
                                     "Failed to resolve record ID for value [%s] in column [%s] of table [%s]", value,
                                     foreignColumn, foreignTable));
                         }
@@ -362,17 +360,13 @@ public class DocumentInjector {
                         String errMsg = gridTab.setValue(field, setValue);
 
                         if (!errMsg.equals("")) {
-                            throw new AdempiereException(errMsg);
+                            throw new SASApiException(so, errMsg);
                         }
                     }
                 }
             }
-        } catch (AdempiereException e) {
-            if (e.getMessage() != null) {
-                insertErrorLog(so, e.getMessage());
-            }
-
-            return false;
+        } catch (SASApiException e) {
+            throw e;
         }
 
         return true;
@@ -492,6 +486,7 @@ public class DocumentInjector {
     }
 
     private void insertErrorLog(Document so, String errorLog) {
+        // TODO beware param == null
         String documentNo = so.getDocumentNo();
         String tableName = so.getTableName();
 
@@ -570,6 +565,8 @@ public class DocumentInjector {
                 log.warning("Failed to save new Error Log record");
             return;
         }
+
+        // TODO need to add a finally block?
     }
 
     class GridTabHolder implements DataStatusListener {
