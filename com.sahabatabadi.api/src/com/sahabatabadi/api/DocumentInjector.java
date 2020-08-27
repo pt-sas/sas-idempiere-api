@@ -26,7 +26,6 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
-import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.compiere.util.ValueNamePair;
 
@@ -198,7 +197,7 @@ public class DocumentInjector {
                 String info = (ppE != null) ? info = ppE.getName() : "";
 
                 throw new AdempiereException(
-                        String.format("Failed to save record in GridTab [%s]", gridTab.getName()));
+                        String.format("Failed to save record in GridTab [%s]\n%s", gridTab.getName(), info));
             }
 
             PO po = gridTab.getTableModel().getPO(gridTab.getCurrentRow());
@@ -236,7 +235,7 @@ public class DocumentInjector {
                 try {
                     value = soField.get(so);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                    throw new AdempiereException(String.format("Java Reflection error when accessing field [%s] in class [%s]!\n %s",
+                    throw new AdempiereException(String.format("Java Reflection error when accessing field [%s] in class [%s]!\n%s",
                             soField.getName(), so.getClass(), e.getMessage()));
                 }
 
