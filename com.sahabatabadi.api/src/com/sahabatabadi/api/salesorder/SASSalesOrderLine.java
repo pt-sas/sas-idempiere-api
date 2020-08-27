@@ -133,7 +133,7 @@ public class SASSalesOrderLine implements Document {
                 continue;
             }
 
-            sb.append(columnName + ": " + value + "\n");
+            sb.append(columnName + ": " + value + "\n\n");
         }
 
         return sb.toString();
@@ -146,11 +146,11 @@ public class SASSalesOrderLine implements Document {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("C_OrderLine>Line" + this.lineNo);
-        sb.append("C_OrderLine>M_Product_ID[Value]" + this.productId);
-        sb.append("C_OrderLine>QtyEntered" + this.quantity);
-        sb.append("C_OrderLine>C_Order_ID[DocumentNo]/K" + this.documentNo);
-        sb.append("C_OrderLine>DatePromised" + this.datePromised);
+        sb.append("C_OrderLine>Line" + this.lineNo + "\n\n");
+        sb.append("C_OrderLine>M_Product_ID[Value]" + this.productId + "\n\n");
+        sb.append("C_OrderLine>QtyEntered" + this.quantity + "\n\n");
+        sb.append("C_OrderLine>C_Order_ID[DocumentNo]/K" + this.documentNo + "\n\n");
+        sb.append("C_OrderLine>DatePromised" + this.datePromised + "\n\n");
         return sb.toString();
     }
 }

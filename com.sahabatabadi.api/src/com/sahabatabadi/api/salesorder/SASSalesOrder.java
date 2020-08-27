@@ -247,7 +247,7 @@ public class SASSalesOrder implements Document, DocHeader {
                 continue;
             }
 
-            sb.append(columnName + ": " + value + "\n");
+            sb.append(columnName + ": " + value + "\n\n");
         }
 
         return sb.toString();
@@ -260,18 +260,18 @@ public class SASSalesOrder implements Document, DocHeader {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("AD_Org_ID[Name]: " + this.org);
-        sb.append("DocumentNo/K: " + this.documentNo);
-        sb.append("Description: " + this.description);
-        sb.append("C_DocTypeTarget_ID[Name]: " + this.docType);
-        sb.append("DateOrdered: " + this.dateOrdered);
-        sb.append("DatePromised: " + this.datePromised);
-        sb.append("C_BPartner_ID[Value]: " + this.bpCode);
-        sb.append("Bill_BPartner_ID[Value]: " + this.invoiceBpCode);
-        sb.append("C_BPartner_Location_ID[Name]: " + this.bpLocation);
-        sb.append("Bill_Location_ID[Name]: " + this.invoiceBpLocation);
-        sb.append("M_Warehouse_ID[Value]: " + this.warehouse);
-        sb.append("AD_OrgTrx_ID[Name]: " + this.orgTrx);
+        sb.append("AD_Org_ID[Name]: " + this.org + "\n\n");
+        sb.append("DocumentNo/K: " + this.documentNo + "\n\n");
+        sb.append("Description: " + this.description + "\n\n");
+        sb.append("C_DocTypeTarget_ID[Name]: " + this.docType + "\n\n");
+        sb.append("DateOrdered: " + this.dateOrdered + "\n\n");
+        sb.append("DatePromised: " + this.datePromised + "\n\n");
+        sb.append("C_BPartner_ID[Value]: " + this.bpCode + "\n\n");
+        sb.append("Bill_BPartner_ID[Value]: " + this.invoiceBpCode + "\n\n");
+        sb.append("C_BPartner_Location_ID[Name]: " + this.bpLocation + "\n\n");
+        sb.append("Bill_Location_ID[Name]: " + this.invoiceBpLocation + "\n\n");
+        sb.append("M_Warehouse_ID[Value]: " + this.warehouse + "\n\n");
+        sb.append("AD_OrgTrx_ID[Name]: " + this.orgTrx + "\n\n");
         return sb.toString();
     }
 }
