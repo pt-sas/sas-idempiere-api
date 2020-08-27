@@ -146,11 +146,11 @@ public class SASSalesOrderLine implements Document {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("C_OrderLine>Line" + this.lineNo + "\n\n");
-        sb.append("C_OrderLine>M_Product_ID[Value]" + this.productId + "\n\n");
-        sb.append("C_OrderLine>QtyEntered" + this.quantity + "\n\n");
-        sb.append("C_OrderLine>C_Order_ID[DocumentNo]/K" + this.documentNo + "\n\n");
-        sb.append("C_OrderLine>DatePromised" + this.datePromised + "\n\n");
+        sb.append(fieldColumnMap.get("lineNo") + this.lineNo + "\n\n");
+        sb.append(fieldColumnMap.get("productId") + this.productId + "\n\n");
+        sb.append(fieldColumnMap.get("quantity") + this.quantity + "\n\n");
+        sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n\n");
+        sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n\n");
         return sb.toString();
     }
 }

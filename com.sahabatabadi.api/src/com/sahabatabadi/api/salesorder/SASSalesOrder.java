@@ -260,18 +260,18 @@ public class SASSalesOrder implements Document, DocHeader {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("AD_Org_ID[Name]: " + this.org + "\n\n");
-        sb.append("DocumentNo/K: " + this.documentNo + "\n\n");
-        sb.append("Description: " + this.description + "\n\n");
-        sb.append("C_DocTypeTarget_ID[Name]: " + this.docType + "\n\n");
-        sb.append("DateOrdered: " + this.dateOrdered + "\n\n");
-        sb.append("DatePromised: " + this.datePromised + "\n\n");
-        sb.append("C_BPartner_ID[Value]: " + this.bpCode + "\n\n");
-        sb.append("Bill_BPartner_ID[Value]: " + this.invoiceBpCode + "\n\n");
-        sb.append("C_BPartner_Location_ID[Name]: " + this.bpLocation + "\n\n");
-        sb.append("Bill_Location_ID[Name]: " + this.invoiceBpLocation + "\n\n");
-        sb.append("M_Warehouse_ID[Value]: " + this.warehouse + "\n\n");
-        sb.append("AD_OrgTrx_ID[Name]: " + this.orgTrx + "\n\n");
+        sb.append(fieldColumnMap.get("org") + this.org + "\n\n");
+        sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n\n");
+        sb.append(fieldColumnMap.get("description") + this.description + "\n\n");
+        sb.append(fieldColumnMap.get("docType") + this.docType + "\n\n");
+        sb.append(fieldColumnMap.get("dateOrdered") + this.dateOrdered + "\n\n");
+        sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n\n");
+        sb.append(fieldColumnMap.get("bpCode") + this.bpCode + "\n\n");
+        sb.append(fieldColumnMap.get("invoiceBpCode") + this.invoiceBpCode + "\n\n");
+        sb.append(fieldColumnMap.get("bpLocation") + this.bpLocation + "\n\n");
+        sb.append(fieldColumnMap.get("invoiceBpLocation") + this.invoiceBpLocation + "\n\n");
+        sb.append(fieldColumnMap.get("warehouse") + this.warehouse + "\n\n");
+        sb.append(fieldColumnMap.get("orgTrx") + this.orgTrx + "\n\n");
         return sb.toString();
     }
 }
