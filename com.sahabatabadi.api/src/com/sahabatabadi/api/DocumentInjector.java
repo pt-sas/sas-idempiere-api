@@ -213,7 +213,7 @@ public class DocumentInjector {
             isError = true;
 
             if (e.getMessage() != null) {
-                insertErrorLog(so.getDocumentNo(), so.getTableName(), e.getMessage());
+                insertErrorLog(so, e.getMessage());
             }
             return false;
         }
@@ -369,7 +369,7 @@ public class DocumentInjector {
             }
         } catch (AdempiereException e) {
             if (e.getMessage() != null) {
-                insertErrorLog(so.getDocumentNo(), so.getTableName(), e.getMessage());
+                insertErrorLog(so, e.getMessage());
             }
 
             return false;
@@ -491,9 +491,14 @@ public class DocumentInjector {
         return id;
     }
 
-    private void insertErrorLog(String documentNo, String tableName, String errorLog) {
+    private void insertErrorLog(Document so, String errorLog) {
+        String documentNo = so.getDocumentNo();
+        String tableName = so.getTableName();
+
         if (log.isLoggable(Level.WARNING))
-            log.warning("Failed to insert document " + documentNo + " in table " + tableName + ". Error message: " + errorLog);
+            log.warning(
+                    String.format("Failed to insert document %s in table %s. Error message: %s. Document content: %s",
+                            documentNo, tableName, errorLog, so.toString()));
 
         int ERROR_LOG_WINDOW_ID = 2200001;
         int ERROR_LOG_MENU_ID = 2200138;
@@ -529,7 +534,7 @@ public class DocumentInjector {
 
         if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Document_No"), documentNo))) {
             if (log.isLoggable(Level.WARNING))
-                log.warning("Unable to save in Document No in Error Log record");
+                log.warning("Unable to set Document No in Error Log record");
             return;
         }
 
@@ -544,13 +549,19 @@ public class DocumentInjector {
 
         if (!"".equals(errorHeaderTab.setValue(adTableField, foreignID))) {
             if (log.isLoggable(Level.WARNING))
-                log.warning("Unable to save Table in Error Log record");
+                log.warning("Unable to set Table in Error Log record");
             return;
         }
 
         if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Error_Msg"), errorLog))) {
             if (log.isLoggable(Level.WARNING))
-                log.warning("Unable to save error message in Error Log record");
+                log.warning("Unable to set error message in Error Log record");
+            return;
+        }
+
+        if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Raw_Content"), so.toString()))) {
+            if (log.isLoggable(Level.WARNING))
+                log.warning("Unable to set raw document content in Error Log record");
             return;
         }
 
