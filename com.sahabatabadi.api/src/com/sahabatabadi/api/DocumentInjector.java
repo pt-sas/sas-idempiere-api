@@ -257,7 +257,9 @@ public class DocumentInjector {
                         if (masterKey != null && masterKey.toString().equals(value)) {
                             String errMsg = gridTab.setValue(field, masterRecord.get_ID());
                             if (!errMsg.equals("")) {
-                                throw new SASApiException(so, errMsg); // TODO elaborate error message
+                                throw new SASApiException(so, String.format(
+                                        "Error setting value [%s] in field [%s]. Error message: %s",
+                                        masterRecord.get_ID(), field.getColumnName(), errMsg));
                             }
                         } else if (value != null) {
                             throw new SASApiException(so, String.format(
@@ -299,7 +301,9 @@ public class DocumentInjector {
                         }
 
                         if (logMsg == null || !logMsg.equals("")) {
-                            throw new SASApiException(so); // TODO elaborate error message
+                            throw new SASApiException(so, String.format(
+                                    "Error setting value [%s] in field [%s]. Error message: %s",
+                                    setValue field.getColumnName(), logMsg));
                         }
                     }
 
@@ -477,7 +481,6 @@ public class DocumentInjector {
     }
 
     private void insertErrorLog(Document so, String errorLog) {
-        // TODO beware param == null
     	try {
     		String documentNo = so.getDocumentNo();
             String tableName = so.getTableName();
@@ -505,7 +508,6 @@ public class DocumentInjector {
             }
 
             GridTab errorHeaderTab = errorLogTabs.get(0);
-            // GridTab errorDetailTab = errorLogTabs.get(1);
 
             if (!errorHeaderTab.getTableModel().isOpen()) {
                 errorHeaderTab.getTableModel().open(0);
