@@ -2,7 +2,7 @@ package com.sahabatabadi.api;
 
 /**
  * Custom Exception class to represent Exceptions being thrown when processing
- * a {@link Document} object.
+ * a {@link ApiInjectable} object.
  */
 public class SASApiException extends Exception {
     /**
@@ -13,7 +13,7 @@ public class SASApiException extends Exception {
     /**
      * Document being processed when exception is thrown
      */
-    private Document doc;
+    private ApiInjectable doc;
 
     /**
      * Constructs a new exception with null as its detail message. The cause is not
@@ -21,7 +21,7 @@ public class SASApiException extends Exception {
      * 
      * @param currentDoc document being processed when exception is thrown
      */
-    public SASApiException(Document currentDoc) {
+    public SASApiException(ApiInjectable currentDoc) {
         super();
         this.doc = currentDoc;
     }
@@ -34,7 +34,7 @@ public class SASApiException extends Exception {
      * @param message    the detail message. The detail message is saved for later
      *                   retrieval by the getMessage() method.
      */
-    public SASApiException(Document currentDoc, String message) {
+    public SASApiException(ApiInjectable currentDoc, String message) {
         super(message);
         this.doc = currentDoc;
     }
@@ -49,7 +49,7 @@ public class SASApiException extends Exception {
      *                   getCause() method). (A null value is permitted, and
      *                   indicates that the cause is nonexistent or unknown.)
      */
-    public SASApiException(Document currentDoc, String message, Throwable cause) {
+    public SASApiException(ApiInjectable currentDoc, String message, Throwable cause) {
         super(message, cause);
         this.doc = currentDoc;
     }
@@ -59,7 +59,7 @@ public class SASApiException extends Exception {
      * 
      * @return document being processed on exception
      */
-    public Document getBadDocument() {
+    public ApiInjectable getBadDocument() {
         return this.doc;
     }
 }

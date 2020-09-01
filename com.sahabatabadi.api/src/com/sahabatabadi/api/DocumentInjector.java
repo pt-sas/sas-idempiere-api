@@ -78,7 +78,7 @@ public class DocumentInjector {
                 }
             }
 
-            for (Document orderLine : headerObj.getLines()) {
+            for (ApiInjectable orderLine : headerObj.getLines()) {
                 processRecord(orderLineTab, true, orderLine);
             }
         } catch (SASApiException e) {
@@ -102,12 +102,12 @@ public class DocumentInjector {
             return false;
         }
 
-        Document[] lines = headerObj.getLines();
+        ApiInjectable[] lines = headerObj.getLines();
         if (lines.length < 1) {
             return false;
         }
 
-        for (Document line : lines) {
+        for (ApiInjectable line : lines) {
             if (line.getDocumentNo() == null) {
                 return false;
             }
@@ -158,7 +158,7 @@ public class DocumentInjector {
     }
 
     // gridTab is either the header tab or the child tab
-    private void processRecord(GridTab gridTab, boolean isDetail, Document so) throws SASApiException {
+    private void processRecord(GridTab gridTab, boolean isDetail, ApiInjectable so) throws SASApiException {
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -212,7 +212,7 @@ public class DocumentInjector {
         }
     }
 
-    private void processRow(GridTab gridTab, Trx trx, Document so) throws SASApiException {
+    private void processRow(GridTab gridTab, Trx trx, ApiInjectable so) throws SASApiException {
         // One field is guaranteed to be parent when insering child tab
         // when putting header, masterRecord is null
         List<String> parentColumns = new ArrayList<String>();
@@ -478,7 +478,8 @@ public class DocumentInjector {
         return id;
     }
 
-    private void insertErrorLog(Document so, String errorLog) {
+    // TODO redesign table to have parent-child relationship
+    private void insertErrorLog(ApiInjectable so, String errorLog) {
     	try {
     		String documentNo = so.getDocumentNo();
             String tableName = so.getTableName();
@@ -560,8 +561,8 @@ public class DocumentInjector {
 
             if (so instanceof DocHeader) {
                 DocHeader header = (DocHeader) so;
-                Document[] lines = header.getLines();
-                for (Document line : lines) {
+                ApiInjectable[] lines = header.getLines();
+                for (ApiInjectable line : lines) {
                     insertErrorLog(line, "Caused by error in header record " + so.getDocumentNo());
                 }
             }
