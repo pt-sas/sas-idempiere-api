@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sahabatabadi.api.Document;
+import com.sahabatabadi.api.DocHeader;
+import com.sahabatabadi.api.DocLine;
 
 /**
  * Class to represent required information to inject a sales order line into SAS
@@ -19,7 +20,7 @@ import com.sahabatabadi.api.Document;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrderLine implements Document {
+public class SASSalesOrderLine implements DocLine {
     /**
      * Table name in iDempiere associated with this line object.
      */
@@ -149,6 +150,11 @@ public class SASSalesOrderLine implements Document {
     @Override
     public String getDocumentNo() {
         return this.documentNo;
+    }
+    
+    @Override
+    public DocHeader getHeader() {
+    	return this.header;
     }
 
     @Override

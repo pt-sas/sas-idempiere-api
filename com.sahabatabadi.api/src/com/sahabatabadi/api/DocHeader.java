@@ -13,5 +13,5 @@ public interface DocHeader extends Document {
      * 
      * @return Line objects as an array
      */
-    public Document[] getLines();
+    public DocLine[] getLines();
 }

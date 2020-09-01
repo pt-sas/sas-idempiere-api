@@ -2,7 +2,6 @@ package com.sahabatabadi.api.salesorder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,7 +12,7 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 
 import com.sahabatabadi.api.DocHeader;
-import com.sahabatabadi.api.Document;
+import com.sahabatabadi.api.DocLine;
 
 /**
  * Class to represent required information to inject a sales order header into
@@ -24,7 +23,7 @@ import com.sahabatabadi.api.Document;
  * @author Nicholas Alexander Limit
  * @version 1.0
  */
-public class SASSalesOrder implements Document, DocHeader {
+public class SASSalesOrder implements DocHeader {
     /**
      * Length of BP codes.
      */
@@ -289,7 +288,7 @@ public class SASSalesOrder implements Document, DocHeader {
     }
 
     @Override
-    public Document[] getLines() {
+    public DocLine[] getLines() {
         return this.orderLines;
     }
 
