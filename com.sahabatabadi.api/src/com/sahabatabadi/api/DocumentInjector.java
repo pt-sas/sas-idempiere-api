@@ -30,6 +30,7 @@ import org.compiere.util.ValueNamePair;
 
 public class DocumentInjector {
     public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
+    public static final String API_ERROR_LOG_TABLE_NAME = "API Error Log";
 
     private static int lastReturnedWindowNo = 1000;
 
@@ -555,13 +556,33 @@ public class DocumentInjector {
         String documentNo = so.getDocumentNo();
         String tableName = so.getTableName();
 
-        // TODO replace with foreign resolve!
-        int ERROR_LOG_WINDOW_ID = 2200001;
-        int ERROR_LOG_MENU_ID = 2200138;
+        String errorLogMenuQuery = new StringBuilder("SELECT AD_Menu_ID, AD_Window_ID ")
+                .append("FROM AD_Menu ")
+                .append("WHERE IsActive='Y' AND name LIKE ").append(API_ERROR_LOG_TABLE_NAME)
+                .toString();
+
+        int errorLogMenuId = -1; // value should be 2200138
+        int errorLogWindowId = -1; // value should be 2200001
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(errorLogMenuQuery, null);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                errorLogMenuId = rs.getInt(1);
+                errorLogWindowId = rs.getInt(2);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, errorLogMenuQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
 
         final int windowNo = getNextWindowNo();
-        GridWindowVO errorLogWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, ERROR_LOG_WINDOW_ID,
-                ERROR_LOG_MENU_ID);
+        GridWindowVO errorLogWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, errorLogWindowId,
+                errorLogMenuId);
         GridWindow errorLogWindow = new GridWindow(errorLogWindowVO, true);
         Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", errorLogWindow.isSOTrx());
 
