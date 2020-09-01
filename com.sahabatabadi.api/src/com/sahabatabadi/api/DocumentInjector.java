@@ -485,93 +485,21 @@ public class DocumentInjector {
         return id;
     }
 
-    // TODO redesign table to have parent-child relationship
     private void insertErrorLog(SASApiException apiException) {
         ApiInjectable so = apiException.getBadDocument();
         int windowId = apiException.getWindowId();
         int tabId = apiException.getTabId();
         String errorLog = apiException.getMessage();
 
+        if (log.isLoggable(Level.WARNING))
+            log.warning(String.format(
+                    "Failed to insert document %s in table %s. Error message: %s. Document content: %s",
+                     so.getDocumentNo(), so.getTableName(), errorLog, so.toString()));
+
         try {
-            String documentNo = so.getDocumentNo();
-            String tableName = so.getTableName();
-
-            if (log.isLoggable(Level.WARNING))
-                log.warning(String.format(
-                        "Failed to insert document %s in table %s. Error message: %s. Document content: %s", documentNo,
-                        tableName, errorLog, so.toString()));
-
-            int ERROR_LOG_WINDOW_ID = 2200001;
-            int ERROR_LOG_MENU_ID = 2200138;
-
-            final int windowNo = getNextWindowNo();
-            GridWindowVO errorLogWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, ERROR_LOG_WINDOW_ID,
-                    ERROR_LOG_MENU_ID);
-            GridWindow errorLogWindow = new GridWindow(errorLogWindowVO, true);
-            Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", errorLogWindow.isSOTrx());
-
-            List<GridTab> errorLogTabs = new ArrayList<>();
-            for (int i = 0; i < errorLogWindow.getTabCount(); i++) {
-                errorLogWindow.initTab(i);
-                GridTab gTab = errorLogWindow.getTab(i);
-                new GridTabHolder(gTab);
-                errorLogTabs.add(gTab);
-            }
-
-            GridTab errorHeaderTab = errorLogTabs.get(0);
-
-            if (!errorHeaderTab.getTableModel().isOpen()) {
-                errorHeaderTab.getTableModel().open(0);
-            }
-
-            if (!errorHeaderTab.dataNew(false)) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Failed to create new Error Log record");
-                return;
-            }
-
-            errorHeaderTab.navigateCurrent();
-
-            if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Document_No"), documentNo))) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Unable to set Document No in Error Log record");
-                return;
-            }
-
-            GridField adTableField = errorHeaderTab.getField("AD_Table_ID");
-            String foreignTable = MColumn.get(Env.getCtx(), adTableField.getAD_Column_ID()).getReferenceTableName();
-            int foreignID = resolveForeign(foreignTable, "TableName", tableName, trx);
-            if (foreignID < 0) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Unable to resolve Table in Error Log record");
-                return;
-            }
-
-            if (!"".equals(errorHeaderTab.setValue(adTableField, foreignID))) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Unable to set Table in Error Log record");
-                return;
-            }
-
-            if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Error_Msg"), errorLog))) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Unable to set error message in Error Log record");
-                return;
-            }
-
-            if (!"".equals(errorHeaderTab.setValue(errorHeaderTab.getField("Raw_Content"), so.toString()))) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Unable to set raw document content in Error Log record");
-                return;
-            }
-
-            if (!errorHeaderTab.dataSave(false)) {
-                if (log.isLoggable(Level.WARNING))
-                    log.warning("Failed to save new Error Log record");
-                return;
-            }
-
             if (so instanceof DocHeader) {
+                insertErrorLogHelper(so, windowId, tabId, false, errorLog);
+
                 DocHeader header = (DocHeader) so;
                 ApiInjectable[] lines = header.getLines();
                 GridTab childCache = null;
@@ -585,12 +513,20 @@ public class DocumentInjector {
                         }
                     }
 
-                    insertErrorLog(new SASApiException(line, childCache.getAD_Window_ID(), childCache.getAD_Tab_ID(),
-                            "Caused by error in header record " + so.getDocumentNo()));
+                    insertErrorLogHelper(line, childCache.getAD_Window_ID(), childCache.getAD_Tab_ID(), true,
+                            "Caused by error in header record.");
                 }
+            } else if (so instanceof DocLine) {
+                DocLine line = (DocLine) so;
+                insertErrorLogHelper(line.getHeader(), headerTab.getAD_Window_ID(), headerTab.getAD_Tab_ID(), false,
+                        "Caused by error in line/detail record.");
+                
+                insertErrorLogHelper(so, windowId, tabId, true, errorLog);
+            } else {
+                insertErrorLogHelper(so, windowId, tabId, false, errorLog);
             }
         } catch (Exception e) {
-            StringBuilder sb = new StringBuilder("Exception when inserting into error log! ");
+            StringBuilder sb = new StringBuilder("Exception when inserting into error log! " + e.getMessage());
 
             if (so != null) {
                 sb.append("Offending document is " + so.toString() + ". ");
@@ -602,6 +538,89 @@ public class DocumentInjector {
 
             if (log.isLoggable(Level.SEVERE))
                 log.severe(sb.toString());
+        }
+    }
+
+    private void insertErrorLogHelper(ApiInjectable so, int windowId, int tabId, boolean isDetail, String errorLog) throws Exception {
+        String documentNo = so.getDocumentNo();
+        String tableName = so.getTableName();
+
+        // TODO replace with foreign resolve!
+        int ERROR_LOG_WINDOW_ID = 2200001;
+        int ERROR_LOG_MENU_ID = 2200138;
+
+        final int windowNo = getNextWindowNo();
+        GridWindowVO errorLogWindowVO = GridWindowVO.create(Env.getCtx(), windowNo, ERROR_LOG_WINDOW_ID,
+                ERROR_LOG_MENU_ID);
+        GridWindow errorLogWindow = new GridWindow(errorLogWindowVO, true);
+        Env.setContext(Env.getCtx(), windowNo, "IsSOTrx", errorLogWindow.isSOTrx());
+
+        GridTab errorTab = null;
+        for (int i = 0; i < errorLogWindow.getTabCount(); i++) {
+            errorLogWindow.initTab(i);
+            GridTab gTab = errorLogWindow.getTab(i);
+            
+            boolean headerFound = !isDetail && "Header".equalsIgnoreCase(gTab.getName());
+            boolean lineFound = isDetail && "Line".equalsIgnoreCase(gTab.getName());
+            if (headerFound || lineFound) {
+            	new GridTabHolder(errorTab);
+            	errorTab = gTab;
+            	break;
+            } 
+        }
+
+        if (errorTab == null) {
+            throw new Exception("Could not find Error Log tab!");
+        }
+
+        if (!errorTab.getTableModel().isOpen()) {
+            errorTab.getTableModel().open(0);
+        }
+
+        if (!errorTab.dataNew(false)) {
+            throw new Exception("Failed to create new Error Log record");
+        }
+
+        errorTab.navigateCurrent();
+
+        if (!"".equals(errorTab.setValue(errorTab.getField("Document_No"), documentNo))) {
+            throw new Exception("Unable to set Document No in Error Log record");
+        }
+
+        GridField adTableIdField = errorTab.getField("AD_Table_ID");
+        String adTableName = MColumn.get(Env.getCtx(), adTableIdField.getAD_Column_ID()).getReferenceTableName();
+        int adTableId = resolveForeign(adTableName, "TableName", tableName, trx);
+        if (adTableId < 0) {
+            throw new Exception("Unable to resolve Table in Error Log record");
+        }
+
+        if (!"".equals(errorTab.setValue(adTableIdField, adTableId))) {
+            throw new Exception("Unable to set Table in Error Log record");
+        }
+
+        if (!"".equals(errorTab.setValue(errorTab.getField("Error_Msg"), errorLog))) {
+            throw new Exception("Unable to set error message in Error Log record");
+        }
+
+        if (!"".equals(errorTab.setValue(errorTab.getField("Raw_Content"), so.toString()))) {
+            throw new Exception("Unable to set raw document content in Error Log record");
+        }
+
+        if (isDetail) { // TODO check that header has been saved before, and is accessible
+        	GridField errorHeaderIdField = errorTab.getField("SAS_API_ErrorLog_Header_ID");
+            String errorHeaderTableName = MColumn.get(Env.getCtx(), errorHeaderIdField.getAD_Column_ID()).getReferenceTableName();
+            int errorHeaderId = resolveForeign(errorHeaderTableName, "TableName", tableName, trx);
+            if (errorHeaderId < 0) {
+                throw new Exception("Unable to resolve Table in Error Log record");
+            }
+
+            if (!"".equals(errorTab.setValue(errorHeaderIdField, errorHeaderId))) {
+                throw new Exception("Unable to set Table in Error Log record");
+            }
+        }
+
+        if (!errorTab.dataSave(false)) {
+            throw new Exception("Failed to save new Error Log record");
         }
     }
 
