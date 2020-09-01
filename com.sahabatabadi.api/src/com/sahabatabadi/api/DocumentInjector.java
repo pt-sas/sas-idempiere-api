@@ -2,6 +2,8 @@ package com.sahabatabadi.api;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -554,11 +556,11 @@ public class DocumentInjector {
 
     private void insertErrorLogHelper(ApiInjectable so, int windowId, int tabId, boolean isDetail, String errorLog) throws Exception {
         String documentNo = so.getDocumentNo();
-        String tableName = so.getTableName();
 
         String errorLogMenuQuery = new StringBuilder("SELECT AD_Menu_ID, AD_Window_ID ")
                 .append("FROM AD_Menu ")
-                .append("WHERE IsActive='Y' AND name LIKE ").append(API_ERROR_LOG_TABLE_NAME)
+                .append("WHERE IsActive='Y' AND name LIKE ")
+                .append("'").append(API_ERROR_LOG_TABLE_NAME).append("'")
                 .toString();
 
         int errorLogMenuId = -1; // value should be 2200138
@@ -578,6 +580,10 @@ public class DocumentInjector {
             DB.close(rs, pstmt);
             rs = null;
             pstmt = null;
+        }
+
+        if (errorLogMenuId == -1 || errorLogWindowId == -1) {
+        	throw new Exception("Could not find menu ID and/or window ID for error log window!");
         }
 
         final int windowNo = getNextWindowNo();
