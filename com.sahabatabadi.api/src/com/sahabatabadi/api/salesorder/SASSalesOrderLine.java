@@ -14,7 +14,9 @@ import com.sahabatabadi.api.DocLine;
 /**
  * Class to represent required information to inject a sales order line into SAS
  * iDempiere. Has methods to convert external SO line classes to SAS SO line.
- * Avoid editing fields manually; rather, use the constructors to convert
+ * Used in {@link SASSalesOrder}
+ * 
+ * <p> Avoid editing fields manually; rather, use the constructors to convert
  * external SO line into SAS SO line.
  * 
  * @author Nicholas Alexander Limit

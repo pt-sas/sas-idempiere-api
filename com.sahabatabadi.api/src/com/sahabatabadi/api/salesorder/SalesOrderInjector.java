@@ -9,7 +9,11 @@ import org.compiere.util.CLogger;
 import com.sahabatabadi.api.DocumentInjector;
 
 /**
- * Class to inject Bizzy Sales Order objects into iDempiere *
+ * Class to inject Bizzy Sales Order objects into iDempiere. This class receives
+ * a single bizzy SO with potentially mixed principals and discounts, splits the
+ * bizzy SO into multiple sales orders based on principal and discount, converts 
+ * them into a SAS SO objects, then inserts the SAS SO objects using 
+ * {@link DocumentInjector}.
  * 
  * @author Nicholas Alexander Limit
  * @version 1.0

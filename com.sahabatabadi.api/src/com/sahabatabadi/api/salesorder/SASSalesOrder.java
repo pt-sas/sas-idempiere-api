@@ -16,9 +16,10 @@ import com.sahabatabadi.api.DocLine;
 
 /**
  * Class to represent required information to inject a sales order header into
- * SAS iDempiere. Has methods to convert external SO classes to SAS SO. Avoid
- * editing fields manually; rather, use the constructors to convert external SO
- * into SAS SO.
+ * SAS iDempiere. Has methods to convert external SO classes to SAS SO.
+ * 
+ * <p> Avoid editing fields manually; rather, use the constructors to convert
+ * external SO into SAS SO.
  * 
  * @author Nicholas Alexander Limit
  * @version 1.0
