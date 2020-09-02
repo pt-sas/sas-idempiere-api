@@ -30,33 +30,94 @@ import org.compiere.util.Env;
 import org.compiere.util.Trx;
 import org.compiere.util.ValueNamePair;
 
+/**
+ * A class to inject {@link DocHeader} into iDempiere.
+ */
 public class DocumentInjector {
-    public static final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
-    public static final String API_ERROR_LOG_TABLE_NAME = "API Error Log";
+    /**
+     * iDempiere Menu name for the API Error Log window
+     */
+    private final String API_ERROR_LOG_MENU_NAME = "API Error Log";
 
-    private static int lastReturnedWindowNo = 1000;
+    /**
+     * Prefix for logger messages
+     */
+    private final String PLUGIN_PREFIX = "[SAS iDempiere API] ";
 
     protected CLogger log = CLogger.getCLogger(getClass());
 
-    private final int windowId;
+    /**
+     * Window number last returned by {@link #getNextWindowNo()}.
+     */
+    private static int lastReturnedWindowNo = 1000;
+
+    /**
+     * Menu ID associated with the injecting iDempiere Window
+     */
     private final int menuId;
 
-    private boolean errorHeaderCreated;
+    /**
+     * Window ID associated with the injecting iDempiere Window
+     */
+    private final int windowId;
 
-    private List<GridTab> childs;
+    /**
+     * GridTab of the header record
+     */
     private GridTab headerTab;
 
+    /**
+     * List of GridTab of the line records
+     */
+    private List<GridTab> childs;
+
+    /**
+     * Whether the header/master record for the error log has been created
+     */
+    private boolean errorHeaderCreated;
+
+    /**
+     * Whether the injector failed to inject the documents
+     */
     private boolean isError;
-    private Trx trx;
-    private String trxName;
+
+    /**
+     * Transaction object representing the insertion operation
+     */
+    private Trx trx; // TODO maybe can be non-field
+    
+    /**
+     * Name of the {@link #trx} object
+     */
+    private String trxName; // TODO maybe can be non-field
+
+    /**
+     * Persistent Object representing the header/master record of the document being
+     * injected
+     */
     private PO masterRecord;
 
+    /**
+     * Creates a DocumentInjector instance associated with a specific iDempiere
+     * Window. The Window determines the resulting record type. For example,
+     * injecting documents through the Sales Order window will create SO documents.
+     * 
+     * @param windowId menu ID associated with the injecting iDempiere Window
+     * @param menuId   window ID associated with the injecting iDempiere Window
+     */
     public DocumentInjector(int windowId, int menuId) {
         this.windowId = windowId;
         this.menuId = menuId;
     }
 
+    /**
+     * Injects a document through the iDempiere window with ID {@link #windowId}
+     * 
+     * @param headerObj header of the document to be injected
+     * @return true if document is successfully injected, false otherwise
+     */
     public boolean injectDocument(DocHeader headerObj) {
+        // org.adempiere.impexp.GridTabCSVImporter#fileImport
         errorHeaderCreated = false;
         isError = false;
         trx = null;
@@ -74,7 +135,7 @@ public class DocumentInjector {
 
             processRecord(headerTab, false, headerObj); // throws SASApiException upon failure
 
-            // process detail
+            // TODO take into account differing child tabs?
             String childTableName = headerObj.getLines()[0].getTableName();
             GridTab orderLineTab = null;
             for (GridTab child : childs) {
@@ -107,6 +168,13 @@ public class DocumentInjector {
         return true;
     }
 
+    /**
+     * Checks whether the document is valid to be injected. This includes checking
+     * whether the header and all its lines have primary keys
+     * 
+     * @param headerObj header of the document to be injected
+     * @return true if the header and all its lines are a valid, false otherwise
+     */
     private boolean checkDocumentValid(DocHeader headerObj) {
         if (headerObj.getDocumentNo() == null) {
             return false;
@@ -126,6 +194,10 @@ public class DocumentInjector {
         return true;
     }
 
+    /**
+     * Initializes the GridTab objects {@link #headerTab} and {@link #childs}
+     * associated with iDempiere window with ID {@link #windowId}
+     */
     private void initGridTab() {
         // org.adempiere.webui.panel.action.FileImportAction::importFile()
         final int windowNo = getNextWindowNo();
@@ -162,13 +234,32 @@ public class DocumentInjector {
         }
     }
 
+    /**
+     * Gets the next available number for a new iDempiere Window object. This window
+     * number is guaranteed to be unique; two different instances of
+     * {@link DocumentInjector} calling this method is guaranteed to get a different
+     * window number
+     * 
+     * @return next available unique window number
+     */
     private static int getNextWindowNo() {
+        // TODO has to be synchronized in multithreading
         DocumentInjector.lastReturnedWindowNo += 1;
         return DocumentInjector.lastReturnedWindowNo;
     }
 
-    // gridTab is either the header tab or the child tab
+    /**
+     * Prepares the GridTab for insertion, inserts the so into the GridTab, then
+     * commits the changes.
+     * 
+     * @param gridTab  GridTab of the {@link ApiInjectable} being injected. Can be
+     *                 header or detail GridTab.
+     * @param isDetail true if {@link ApiInjectable} being injected is a detail.
+     * @param so       the {@link ApiInjectable} being injected.
+     * @throws SASApiException
+     */
     private void processRecord(GridTab gridTab, boolean isDetail, ApiInjectable so) throws SASApiException {
+        // org.adempiere.impexp.GridTabCSVImporter#processRecord
         try {
             if (isDetail) {
                 gridTab.getTableModel().setImportingMode(true, trxName);
@@ -222,9 +313,19 @@ public class DocumentInjector {
         }
     }
 
+    /**
+     * Inserts the so into the prepared GridTab.
+     * 
+     * <p>
+     * Additionally, when inserting header, {@link #masterRecord} is null.
+     * 
+     * @param gridTab
+     * @param trx
+     * @param so
+     * @throws SASApiException
+     */
     private void processRow(GridTab gridTab, Trx trx, ApiInjectable so) throws SASApiException {
-        // One field is guaranteed to be parent when insering child tab
-        // when putting header, masterRecord is null
+        // org.adempiere.impexp.GridTabCSVImporter#proccessRow
         List<String> parentColumns = new ArrayList<String>();
         try {
             for (Field soField : so.getClass().getDeclaredFields()) {
@@ -382,13 +483,22 @@ public class DocumentInjector {
         }
     }
 
+    /**
+     * Helper method to check whether the value has changed from the old value. In
+     * other words, it checks if the two values are different.
+     * 
+     * @param oldValue old value of the database field
+     * @param value    new value of the database field
+     * @return true if the value has changed, false otherwise
+     */
     @SuppressWarnings("unchecked")
     private boolean isValueChanged(Object oldValue, Object value) {
-        if (isNotNullAndIsEmpty(oldValue)) {
+        // org.compiere.model.GridTable#isValueChanged(Object, Object)
+        if (oldValue != null && (oldValue instanceof String) && oldValue.toString().equals("")) {
             oldValue = null;
         }
 
-        if (isNotNullAndIsEmpty(value)) {
+        if (value != null && (value instanceof String) && value.toString().equals("")) {
             value = null;
         }
 
@@ -408,14 +518,25 @@ public class DocumentInjector {
         return bChanged;
     }
 
-    private boolean isNotNullAndIsEmpty(Object value) {
-        if (value != null && (value instanceof String) && value.toString().equals("")) {
-            return true;
-        } else {
-            return false;
-        }
+    /**
+     * Creates a Trx object related to the specified GridTab object to perform DB
+     * insertion.
+     * 
+     * @param gridTab GridTab associated with inserting the created Trx object
+     */
+    private void createTrx(GridTab gridTab) {
+        trxName = "Import_" + gridTab.getTableName() + "_" + UUID.randomUUID();
+        gridTab.getTableModel().setImportingMode(true, trxName);
+        trx = Trx.get(trxName, true);
+        masterRecord = null;
     }
 
+    /**
+     * Closes the Trx object related to the specified GridTab object after DB
+     * insertion.
+     * 
+     * @param gridTab GridTab associated with inserting the created Trx object
+     */
     private void closeTrx(GridTab gridTab) {
         if (trx == null) {
             return;
@@ -439,13 +560,16 @@ public class DocumentInjector {
         trx = null;
     }
 
-    private void createTrx(GridTab gridTab) {
-        trxName = "Import_" + gridTab.getTableName() + "_" + UUID.randomUUID();
-        gridTab.getTableModel().setImportingMode(true, trxName);
-        trx = Trx.get(trxName, true);
-        masterRecord = null;
-    }
-
+    /**
+     * Helper method ot clean the record name of the extra annotation, returning the
+     * remaining column name.
+     * 
+     * @param isKey     true if the column is a key column
+     * @param isForeign true if the column references a foreign table
+     * @param isDetail  true if the column belongs in a detail record
+     * @param headName  header name
+     * @return column name after cleaning
+     */
     private String getColumnName(boolean isKey, boolean isForeign, boolean isDetail, String headName) {
         if (isKey) {
             if (headName.indexOf("/") > 0 && headName.endsWith("K")) {
@@ -467,6 +591,16 @@ public class DocumentInjector {
         return headName;
     }
 
+    /**
+     * Helper method to resolve the ID of records in the AD_Ref_List table, given
+     * value, the column, and the foreign column.
+     * 
+     * @param column        column name of the AD_Reference
+     * @param foreignColumn column name of the value specified
+     * @param value         value to be searched in the foreign table.
+     * @param trx           Trx object representing the insertion operation
+     * @return ID of the foreign record
+     */
     private String resolveForeignList(MColumn column, String foreignColumn, Object value, Trx trx) {
         String idS = null;
         String trxName = (trx != null ? trx.getTrxName() : null);
@@ -476,6 +610,17 @@ public class DocumentInjector {
         return idS;
     }
 
+    /**
+     * Helper method to resolve the ID of records in a foreign table. This method
+     * searches for the value in the foreign column and foreign table, and returns
+     * the ID of the record.
+     * 
+     * @param foreignTable  table where the record resides
+     * @param foreignColumn column name of the value specified
+     * @param value         value to be searched in the foreign table.
+     * @param trx           Trx object representing the insertion operation
+     * @return ID of the foreign record
+     */
     private int resolveForeign(String foreignTable, String foreignColumn, Object value, Trx trx) {
         int id = -1;
         String trxName = (trx != null ? trx.getTrxName() : null);
@@ -495,6 +640,17 @@ public class DocumentInjector {
         return id;
     }
 
+    /**
+     * Inserts an entry to the error log table capturing the entire content of the
+     * SO upon insertion failure.
+     * 
+     * <p> 
+     * Should this method encounter another exception, the SO content will be
+     * printed to the console instead.
+     * 
+     * @param apiException Exception object containing information about the failed
+     *                     SO
+     */
     private void insertErrorLog(SASApiException apiException) {
         ApiInjectable so = apiException.getBadDocument();
         int windowId = apiException.getWindowId();
@@ -554,13 +710,27 @@ public class DocumentInjector {
         }
     }
 
+    /**
+     * Helper method to insert a failed injectable object into the error log.
+     *
+     * @param so       Failed injectable object to be inserted to the error log
+     *                 table.
+     * @param windowId Window ID of the Tab associated with the failed injectable
+     *                 objcet
+     * @param tabId    Tab ID of the Tab associated with the failed injectable
+     *                 object
+     * @param isDetail true if the failed injectable object is a detail record
+     * @param errorLog optional error message to be inserted along with the record
+     *                 content
+     * @throws Exception
+     */
     private void insertErrorLogHelper(ApiInjectable so, int windowId, int tabId, boolean isDetail, String errorLog) throws Exception {
         String documentNo = so.getDocumentNo();
 
         String errorLogMenuQuery = new StringBuilder("SELECT AD_Menu_ID, AD_Window_ID ")
                 .append("FROM AD_Menu ")
                 .append("WHERE IsActive='Y' AND name LIKE ")
-                .append("'").append(API_ERROR_LOG_TABLE_NAME).append("'")
+                .append("'").append(API_ERROR_LOG_MENU_NAME).append("'")
                 .toString();
 
         int errorLogMenuId = -1; // value should be 2200138
@@ -658,14 +828,28 @@ public class DocumentInjector {
         }
     }
 
+    /**
+     * Helper class to trigger callouts when data in the associated GridTab's
+     * field changes.
+     */
     class GridTabHolder implements DataStatusListener {
         private GridTab gridTab;
 
+        /**
+         * Default constructor. 
+         * 
+         * @param gTab GridTab object to monitor for data changes
+         */
         public GridTabHolder(GridTab gTab) {
             this.gridTab = gTab;
             gridTab.addDataStatusListener(this);
         }
 
+        /**
+         * Called when data in the associated GridTab's field changes.
+         * 
+         * @param e Event object containing information about the trigger
+         */
         public void dataStatusChanged(DataStatusEvent e) {
             // org.adempiere.webui.adwindow.ADTabpanel::dataStatusChanged(DataStatusEvent)
             int col = e.getChangedColumn();
