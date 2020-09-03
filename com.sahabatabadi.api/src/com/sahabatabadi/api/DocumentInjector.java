@@ -84,12 +84,12 @@ public class DocumentInjector {
     /**
      * Transaction object representing the insertion operation
      */
-    private Trx trx; // TODO maybe can be non-field
+    private Trx trx;
     
     /**
      * Name of the {@link #trx} object
      */
-    private String trxName; // TODO maybe can be non-field
+    private String trxName;
 
     /**
      * Persistent Object representing the header/master record of the document being
@@ -135,22 +135,22 @@ public class DocumentInjector {
 
             processRecord(headerTab, false, headerObj); // throws SASApiException upon failure
 
-            // TODO take into account differing child tabs?
-            String childTableName = headerObj.getLines()[0].getTableName();
-            GridTab orderLineTab = null;
-            for (GridTab child : childs) {
-                if (childTableName.equals(child.getTableName())) {
-                    orderLineTab = child;
-                    break;
+            GridTab detailTabCache = null;
+            for (ApiInjectable lineRecord : headerObj.getLines()) {
+                if (detailTabCache == null || !lineRecord.getTableName().equals(detailTabCache.getTableName())) {
+                    for (GridTab child : childs) {
+                        if (lineRecord.getTableName().equals(child.getTableName())) {
+                            detailTabCache = child;
+                            break;
+                        }
+                    }
                 }
-            }
 
-            for (ApiInjectable orderLine : headerObj.getLines()) {
-            	try {
-            		processRecord(orderLineTab, true, orderLine);
-            	} catch (SASApiException e) {
-            		insertErrorLog(e);
-            	}
+                try {
+                    processRecord(detailTabCache, true, lineRecord);
+                } catch (SASApiException e) {
+                    insertErrorLog(e);
+                }
             }
         } catch (SASApiException e) {
             insertErrorLog(e);
