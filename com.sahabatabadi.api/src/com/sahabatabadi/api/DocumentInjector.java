@@ -753,7 +753,7 @@ public class DocumentInjector {
         }
 
         if (errorLogMenuId == -1 || errorLogWindowId == -1) {
-        	throw new Exception("Could not find menu ID and/or window ID for error log window!");
+            throw new Exception("Could not find menu ID and/or window ID for error log window!");
         }
 
         final int windowNo = getNextWindowNo();
@@ -770,9 +770,9 @@ public class DocumentInjector {
             boolean headerFound = !isDetail && "Header".equalsIgnoreCase(gTab.getName());
             boolean lineFound = isDetail && "Line".equalsIgnoreCase(gTab.getName());
             if (headerFound || lineFound) {
-            	new GridTabHolder(gTab);
-            	errorTab = gTab;
-            	break;
+                new GridTabHolder(gTab);
+                errorTab = gTab;
+                break;
             } 
         }
 
@@ -836,7 +836,7 @@ public class DocumentInjector {
         private GridTab gridTab;
 
         /**
-         * Default constructor. 
+         * Default constructor.
          * 
          * @param gTab GridTab object to monitor for data changes
          */
