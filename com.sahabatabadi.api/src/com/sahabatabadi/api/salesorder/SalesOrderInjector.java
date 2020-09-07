@@ -3,10 +3,12 @@ package com.sahabatabadi.api.salesorder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.compiere.util.CLogger;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import com.sahabatabadi.api.DocumentInjector;
+import com.sahabatabadi.api.ThreadPoolManager;
 
 /**
  * Class to inject {@link BizzySalesOrder} into iDempiere. This class receives a
@@ -29,8 +31,6 @@ public class SalesOrderInjector {
      * Menu ID for Sales Order menu in iDempiere
      */
     public static final int SALES_ORDER_MENU_ID = 129;
-
-    protected static CLogger log = CLogger.getCLogger(SalesOrderInjector.class);
     
     /**
      * Injects the specified Bizzy Sales Order into iDempiere
@@ -38,30 +38,56 @@ public class SalesOrderInjector {
      * @param bizzySo Bizzy Sales Order object to be injected
      * @return Document numbers of the documents successfully inserted
      */
-    public static String injectSalesOrder(BizzySalesOrder bizzySo) {
+    public String injectSalesOrder(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productId);
             soLine.principalId = principal;
-            soLine.discount = SalesOrderUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal); // setting double as an int
+            soLine.discount = SalesOrderUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal);
         }
 
-        ArrayList<String> insertedDocNums = new ArrayList<>();
-
         ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
+
+        ArrayList<Future<String>> pendingResults = new ArrayList<>();
         for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
             BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
             splitBizzySo.orderLines = soLineGroup;
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
-            DocumentInjector inj = new DocumentInjector(SALES_ORDER_WINDOW_ID, SALES_ORDER_MENU_ID);
-            boolean injectSuccess = inj.injectDocument(sasSo);
+            SalesOrderInjectorThread task = new SalesOrderInjectorThread(sasSo);
+            Future<String> res = ThreadPoolManager.getExecutor().submit(task);
+            pendingResults.add(res);
+        }
 
-            if (injectSuccess) {
-                insertedDocNums.add(sasSo.documentNo);
+        ArrayList<String> insertedDocNums = new ArrayList<>();
+        for (Future<String> result : pendingResults) {
+            try {
+                String docNum = result.get();
+                if (docNum != null) {
+                    insertedDocNums.add(docNum);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
         }
 
         return insertedDocNums.toString();
+    }
+
+    class SalesOrderInjectorThread implements Callable<String> {
+        private SASSalesOrder sasSo;
+
+        public SalesOrderInjectorThread(SASSalesOrder sasSo) {
+            this.sasSo = sasSo;
+        }
+
+        /**
+         * @return document number of the injected, or null if inject failed
+         */
+        public String call() {
+            DocumentInjector inj = new DocumentInjector(SALES_ORDER_WINDOW_ID, SALES_ORDER_MENU_ID);
+            boolean injectSuccess = inj.injectDocument(sasSo);
+            return injectSuccess ? sasSo.documentNo : null;
+        }
     }
 
     /**
@@ -70,7 +96,7 @@ public class SalesOrderInjector {
      * @param bizzySoLines array of Bizzy SO lines to be split
      * @return ArrayList of SO lines split by principal and discount
      */
-    private static ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
+    private ArrayList<BizzySalesOrderLine[]> splitSoLines(BizzySalesOrderLine[] bizzySoLines) {
         HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
         for (int i = 0; i < bizzySoLines.length; i++) {

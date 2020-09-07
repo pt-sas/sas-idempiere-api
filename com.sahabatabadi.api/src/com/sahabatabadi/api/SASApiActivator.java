@@ -59,5 +59,7 @@ public class SASApiActivator implements BundleActivator {
             rmiServer.stopRmiServer();
             rmiServer = null;
         }
+        
+        ThreadPoolManager.stopExecutor();
     }
 }
