@@ -73,9 +73,20 @@ public class SalesOrderInjector {
         return insertedDocNums.toString();
     }
 
+    /**
+     * Wrapper class for the injector thread
+     */
     class SalesOrderInjectorThread implements Callable<String> {
+        /**
+         * SAS SO object to be inserted by this class
+         */
         private SASSalesOrder sasSo;
 
+        /**
+         * Default constructor
+         * 
+         * @param sasSo SAS SO object to be inserted in {@link #call()}
+         */
         public SalesOrderInjectorThread(SASSalesOrder sasSo) {
             this.sasSo = sasSo;
         }
