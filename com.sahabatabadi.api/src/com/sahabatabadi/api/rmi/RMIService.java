@@ -10,16 +10,16 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import org.compiere.util.CLogger;
 
-public class RMIServer {
+public class RMIService {
     public static final int RMI_REGISTRY_PORT = 1579;
     
     private RemoteApi server;
     private Remote stub;
     private Registry registry;
 
-    protected static CLogger log = CLogger.getCLogger(RMIServer.class);
+    protected static CLogger log = CLogger.getCLogger(RMIService.class);
 
-    public void startRmiService() {
+    public void start() {
         if (log.isLoggable(Level.INFO))
             log.info("Starting RMI registry service");
 
@@ -41,7 +41,7 @@ public class RMIServer {
         }
     }
 
-    public void stopRmiService() {
+    public void stop() {
         if (log.isLoggable(Level.INFO))
             log.info("Stopping RMI registry service");
         try {

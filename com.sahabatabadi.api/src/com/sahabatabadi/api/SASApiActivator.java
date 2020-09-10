@@ -7,7 +7,7 @@ import org.compiere.util.CLogger;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import com.sahabatabadi.api.rmi.RMIServer;
+import com.sahabatabadi.api.rmi.RMIService;
 
 /**
  * Custom Activator class for SAS iDempiere API plugin
@@ -17,7 +17,7 @@ import com.sahabatabadi.api.rmi.RMIServer;
  */
 public class SASApiActivator implements BundleActivator {
     private static BundleContext context;
-    private static RMIServer rmiServer;
+    private static RMIService rmiServer;
 
     protected CLogger log = CLogger.getCLogger(getClass());
 
@@ -38,10 +38,10 @@ public class SASApiActivator implements BundleActivator {
         LoginEmulator.emulateLogin();
 
         if (rmiServer == null) {
-            rmiServer = new RMIServer();
+            rmiServer = new RMIService();
         }
 
-        rmiServer.startRmiService();
+        rmiServer.start();
     }
 
     /*
@@ -56,7 +56,7 @@ public class SASApiActivator implements BundleActivator {
         SASApiActivator.context = null;
         
         if (rmiServer != null) {
-            rmiServer.stopRmiService();
+            rmiServer.stop();
             rmiServer = null;
         }
         
