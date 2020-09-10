@@ -1,7 +1,9 @@
 package com.sahabatabadi.api;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Adapter class to manage the injector thread pool
@@ -13,25 +15,16 @@ public class ThreadPoolManager {
     private static ExecutorService executor = createExecutor();
 
     /**
-     * Getter for the executor service object
-     * 
-     * @return Executor Service object of the class
-     */
-    public static ExecutorService getExecutor() {
-        return ThreadPoolManager.executor;
-    }
-
-    /**
      * Stops the running Executor Service.
      */
-    public static void stopExecutor() {
+    public static void stop() {
         ThreadPoolManager.executor.shutdown();
     }
 
     /**
      * Destroys the old Executor Service and creates/reinitializes a new one.
      */
-    public static void reinitializeExecutor() {
+    public static void reinitialize() {
         ExecutorService oldExecutor = ThreadPoolManager.executor;
 
         ThreadPoolManager.executor = createExecutor();
@@ -47,5 +40,18 @@ public class ThreadPoolManager {
      */
     private static ExecutorService createExecutor() {
         return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    }
+
+    /**
+     * Submits a value-returning task for execution and returns a Future
+     * representing the pending results of the task. The Future's get method will
+     * return the task's result upon successful completion.
+     * 
+     * @param <T>  return type of the task's result
+     * @param task task to be run in a worker thread
+     * @return a Future object representing pending completion of the task
+     */
+    public static <T> Future<T> submitTask(Callable<T> task) {
+        return executor.submit(task);
     }
 }

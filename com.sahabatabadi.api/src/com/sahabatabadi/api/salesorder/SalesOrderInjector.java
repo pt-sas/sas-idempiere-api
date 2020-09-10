@@ -54,7 +54,7 @@ public class SalesOrderInjector {
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
             SalesOrderInjectorThread task = new SalesOrderInjectorThread(sasSo);
-            Future<String> res = ThreadPoolManager.getExecutor().submit(task);
+            Future<String> res = ThreadPoolManager.submitTask(task);
             pendingResults.add(res);
         }
 
