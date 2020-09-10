@@ -41,7 +41,7 @@ public class SASApiActivator implements BundleActivator {
             rmiServer = new RMIServer();
         }
 
-        rmiServer.startRmiServer();
+        rmiServer.startRmiService();
     }
 
     /*
@@ -56,7 +56,7 @@ public class SASApiActivator implements BundleActivator {
         SASApiActivator.context = null;
         
         if (rmiServer != null) {
-            rmiServer.stopRmiServer();
+            rmiServer.stopRmiService();
             rmiServer = null;
         }
         

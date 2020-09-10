@@ -19,9 +19,9 @@ public class RMIServer {
 
     protected static CLogger log = CLogger.getCLogger(RMIServer.class);
 
-    public void startRmiServer() {
+    public void startRmiService() {
         if (log.isLoggable(Level.INFO))
-            log.info("Starting RMI Server");
+            log.info("Starting RMI registry service");
 
         try {
             server = new RemoteApi();
@@ -32,23 +32,23 @@ public class RMIServer {
             registry.rebind(IRemoteApi.BINDING_NAME, stub);
 
             if (log.isLoggable(Level.INFO))
-                log.info("Server ready");
+                log.info("Registry ready");
         } catch (RemoteException e) {
             if (log.isLoggable(Level.WARNING)) {
-                log.warning("Server exception: " + e.toString());
+                log.warning("RMI server exception: " + e.toString());
                 e.printStackTrace();
             }
         }
     }
 
-    public void stopRmiServer() {
+    public void stopRmiService() {
         if (log.isLoggable(Level.INFO))
-            log.info("Stopping RMI server");
+            log.info("Stopping RMI registry service");
         try {
             registry.unbind(IRemoteApi.BINDING_NAME);
         } catch (RemoteException | NotBoundException e) {
             if (log.isLoggable(Level.WARNING)) {
-                log.warning("Server exception: " + e.toString());
+                log.warning("RMI server exception: " + e.toString());
                 e.printStackTrace();
             }
         }
