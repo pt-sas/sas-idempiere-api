@@ -11,8 +11,6 @@ import java.util.logging.Level;
 import org.compiere.util.CLogger;
 
 public class RMIService {
-    public static final int RMI_REGISTRY_PORT = 1579;
-    
     private RemoteApi server;
     private Remote stub;
     private Registry registry;
@@ -28,7 +26,7 @@ public class RMIService {
             stub = (Remote) UnicastRemoteObject.exportObject(server, 0);
 
             // Bind the remote object's stub in the registry
-            registry = LocateRegistry.createRegistry(RMI_REGISTRY_PORT);
+            registry = LocateRegistry.createRegistry(IRemoteApi.RMI_REGISTRY_PORT);
             registry.rebind(IRemoteApi.BINDING_NAME, stub);
 
             if (log.isLoggable(Level.INFO))
@@ -46,6 +44,7 @@ public class RMIService {
             log.info("Stopping RMI registry service");
         try {
             registry.unbind(IRemoteApi.BINDING_NAME);
+            UnicastRemoteObject.unexportObject(registry, true);
         } catch (RemoteException | NotBoundException e) {
             if (log.isLoggable(Level.WARNING)) {
                 log.warning("RMI server exception: " + e.toString());

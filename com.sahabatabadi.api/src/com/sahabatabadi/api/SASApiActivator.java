@@ -35,13 +35,14 @@ public class SASApiActivator implements BundleActivator {
             log.info("SAS iDempiere API is starting");
         SASApiActivator.context = bundleContext;
 
-        LoginEmulator.emulateLogin();
-
         if (rmiServer == null) {
             rmiServer = new RMIService();
         }
 
         rmiServer.start();
+        
+        LoginEmulator.emulateLogin();
+        ThreadPoolManager.reinitialize();
     }
 
     /*

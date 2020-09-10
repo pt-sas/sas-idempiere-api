@@ -29,7 +29,9 @@ public class ThreadPoolManager {
 
         ThreadPoolManager.executor = createExecutor();
 
-        oldExecutor.shutdown();
+        if (oldExecutor != null) {
+        	oldExecutor.shutdown();	
+        }
     }
 
     /**
