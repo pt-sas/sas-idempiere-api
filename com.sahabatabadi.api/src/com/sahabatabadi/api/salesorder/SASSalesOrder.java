@@ -26,11 +26,6 @@ import com.sahabatabadi.api.DocLine;
  */
 public class SASSalesOrder implements DocHeader {
     /**
-     * Length of BP codes.
-     */
-    public static final int BP_ID_LENGTH = 5;
-
-    /**
      * Increment between line numbers in an unprocessed SO. 
      */
     public static final int LINE_NUMBER_INCREMENT = 10;
@@ -238,7 +233,7 @@ public class SASSalesOrder implements DocHeader {
         this.description = bizzySo.description;
         this.dateOrdered = bizzySo.dateOrdered;
         this.datePromised = this.dateOrdered;
-        this.bpCode = SalesOrderUtils.prependZeros(bizzySo.bpHoldingCode, BP_ID_LENGTH);
+        this.bpCode = bizzySo.bpHoldingCode;
         this.invoiceBpCode = this.bpCode;
         this.bpLocation = bizzySo.bpLocationCode;
         this.invoiceBpLocation = this.bpLocation;

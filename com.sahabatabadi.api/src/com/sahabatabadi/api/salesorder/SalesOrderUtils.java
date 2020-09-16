@@ -273,7 +273,7 @@ public class SalesOrderUtils {
      * @return The product's discount list ID, from the {@code sas_discountlist_id}
      *         field in the {@code M_DiscountSchemaBreak} table.
      */
-    public static int getProductDiscount(String productId, int bpHoldingNo, String principal) {
+    public static int getProductDiscount(String productId, String bpHoldingCode, String principal) {
         int discount = -1;
         String discountQuery = new StringBuilder()
             .append("SELECT brk.sas_discountlist_id\n") 
@@ -296,9 +296,8 @@ public class SalesOrderUtils {
         try {
             pstmt = DB.prepareStatement(discountQuery, null);
             pstmt.setString(1, productId);
-            String bpCode = SalesOrderUtils.prependZeros(bpHoldingNo, SASSalesOrder.BP_ID_LENGTH);
-            pstmt.setString(2, bpCode);
-            pstmt.setString(3, SalesOrderUtils.getOrgTrx(bpCode, principal));
+            pstmt.setString(2, bpHoldingCode);
+            pstmt.setString(3, SalesOrderUtils.getOrgTrx(bpHoldingCode, principal));
             rs = pstmt.executeQuery();
             if (rs.next())
                 discount = rs.getInt(1);
@@ -310,24 +309,6 @@ public class SalesOrderUtils {
             pstmt = null;
         }
         return discount;
-    }
-
-    /**
-     * Prepends zeros to the specified integer until the number reaches the
-     * specified length.
-     * 
-     * @param no          The integer / number to be prepended with zeros.
-     * @param totalLength The desired length of the number.
-     * @return The number prepended with zeros.
-     */
-    public static String prependZeros(int no, int totalLength) {
-        String noString = Integer.toString(no);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < totalLength - noString.length(); i++) {
-            sb.append("0");
-        }
-        sb.append(noString);
-        return sb.toString();
     }
 
     /**

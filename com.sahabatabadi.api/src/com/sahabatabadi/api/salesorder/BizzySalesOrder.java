@@ -29,18 +29,14 @@ public class BizzySalesOrder implements Serializable {
     public Date dateOrdered;
 
     /**
-     * TODO update
      * Five-digit business partner (BP) or customer number, as an int. For example,
      * for BP "PIONEER ELEKTRIC" with BP number "03806", the value is {@code 3806}.
      */
-    public int bpHoldingCode;
+    public String bpHoldingCode;
 
     /**
-     * TODO update
-     * Exact name of the business partner's (BP) or customer's location. Value has
-     * to exactly match the name in iDempiere's {@code C_BPartner_Location} table.
-     * Example: {@code "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt.
-     * Dasar Blok C No. 3-5]"}
+     * ID of the business partner's (BP) or customer's location from iDempiere's
+     * {@code C_BPartner_Location} table.
      */
     public String bpLocationCode;
 
@@ -58,9 +54,7 @@ public class BizzySalesOrder implements Serializable {
     /**
      * Empty constructor
      */
-    public BizzySalesOrder() {
-        bpHoldingCode = -1;
-    }
+    public BizzySalesOrder() {}
 
     /**
      * Copy constructor

@@ -32,7 +32,7 @@ public class Client {
         bizzySo.soff_code = 'A';
         bizzySo.description = "Testing principal and discount retrieval from DB";
         bizzySo.dateOrdered = new Date(System.currentTimeMillis());
-        bizzySo.bpHoldingCode = 3806;
+        bizzySo.bpHoldingCode = "03806";
         // bizzySo.bpLocationName = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // non-tax
         bizzySo.bpLocationCode = "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // tax
         bizzySo.orderSource = 'B';
@@ -40,7 +40,7 @@ public class Client {
         bizzySo.orderLines = new BizzySalesOrderLine[1];
 
         bizzySo.orderLines[0] = new BizzySalesOrderLine();
-        bizzySo.orderLines[0].productCode = "AB9301485";
+        bizzySo.orderLines[0].productCode = "AB0301485";
         bizzySo.orderLines[0].quantity = 100;
         // bizzySo.orderLines[0].principalId = "Philips";
         // bizzySo.orderLines[0].discount = "8";
