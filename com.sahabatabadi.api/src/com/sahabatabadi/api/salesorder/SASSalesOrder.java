@@ -238,15 +238,15 @@ public class SASSalesOrder implements DocHeader {
         this.description = bizzySo.description;
         this.dateOrdered = bizzySo.dateOrdered;
         this.datePromised = this.dateOrdered;
-        this.bpCode = SalesOrderUtils.prependZeros(bizzySo.bpHoldingNo, BP_ID_LENGTH);
+        this.bpCode = SalesOrderUtils.prependZeros(bizzySo.bpHoldingCode, BP_ID_LENGTH);
         this.invoiceBpCode = this.bpCode;
-        this.bpLocation = bizzySo.bpLocationName;
+        this.bpLocation = bizzySo.bpLocationCode;
         this.invoiceBpLocation = this.bpLocation;
         this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
 
         StringBuilder sb = new StringBuilder("O");
         sb.append(bizzySo.orderSource);
-        sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationName) ? "T" : "N");
+        sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationCode) ? "T" : "N");
         this.docType = SalesOrderUtils.docTypeMap.get(sb.toString());
 
         String principal = bizzySo.orderLines[0].principalId;

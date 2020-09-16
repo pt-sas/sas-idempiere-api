@@ -130,7 +130,7 @@ public class SASSalesOrderLine implements DocLine {
     public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) {
         /* parsing values from Bizzy SO Line */
         this.header = header;
-        this.productId = orderLine.productId;
+        this.productId = orderLine.productCode;
         this.quantity = new BigDecimal(orderLine.quantity);
 
         /* calculating values */

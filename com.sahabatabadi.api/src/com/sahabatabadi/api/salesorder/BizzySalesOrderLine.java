@@ -10,13 +10,13 @@ import java.io.Serializable;
  * @version 1.0
  */
 public class BizzySalesOrderLine implements Serializable {
-    private static final long serialVersionUID = 20200730L;
+    private static final long serialVersionUID = 20200915L;
 
     /**
-     * Product ID of the product being ordered. Has to match the entries in
+     * Product code of the product being ordered. Has to match the entries in
      * iDempiere's {@code M_Product} table. Example: {@code "AB0301485"}.
      */
-    public String productId;
+    public String productCode;
 
     /**
      * Quantity of the product being ordered.
@@ -50,7 +50,7 @@ public class BizzySalesOrderLine implements Serializable {
      * @param bizzySoLine Bizzy SO Line object to copy from
      */
     public BizzySalesOrderLine(BizzySalesOrderLine bizzySoLine) {
-        this.productId = bizzySoLine.productId;
+        this.productCode = bizzySoLine.productCode;
         this.quantity = bizzySoLine.quantity;
         this.principalId = bizzySoLine.principalId;
         this.discount = bizzySoLine.discount;

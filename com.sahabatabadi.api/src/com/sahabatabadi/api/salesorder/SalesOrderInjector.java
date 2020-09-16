@@ -40,9 +40,9 @@ public class SalesOrderInjector {
      */
     public String injectSalesOrder(BizzySalesOrder bizzySo) {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
-            String principal = SalesOrderUtils.getProductPrincipal(soLine.productId);
+            String principal = SalesOrderUtils.getProductPrincipal(soLine.productCode);
             soLine.principalId = principal;
-            soLine.discount = SalesOrderUtils.getProductDiscount(soLine.productId, bizzySo.bpHoldingNo, principal);
+            soLine.discount = SalesOrderUtils.getProductDiscount(soLine.productCode, bizzySo.bpHoldingCode, principal);
         }
 
         ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);

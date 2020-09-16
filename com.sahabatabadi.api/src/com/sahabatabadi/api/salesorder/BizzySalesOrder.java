@@ -10,7 +10,7 @@ import java.util.Date;
  * @version 1.0
  */
 public class BizzySalesOrder implements Serializable {
-    private static final long serialVersionUID = 20200728L;
+    private static final long serialVersionUID = 20200915L;
 
     /**
      * Represents the branch associated with the sales order. Value has to be either
@@ -29,18 +29,20 @@ public class BizzySalesOrder implements Serializable {
     public Date dateOrdered;
 
     /**
+     * TODO update
      * Five-digit business partner (BP) or customer number, as an int. For example,
      * for BP "PIONEER ELEKTRIC" with BP number "03806", the value is {@code 3806}.
      */
-    public int bpHoldingNo;
+    public int bpHoldingCode;
 
     /**
+     * TODO update
      * Exact name of the business partner's (BP) or customer's location. Value has
      * to exactly match the name in iDempiere's {@code C_BPartner_Location} table.
      * Example: {@code "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt.
      * Dasar Blok C No. 3-5]"}
      */
-    public String bpLocationName;
+    public String bpLocationCode;
 
     /**
      * Bizzy source of this order. Value has to be either {@code 'B'} (representing
@@ -57,7 +59,7 @@ public class BizzySalesOrder implements Serializable {
      * Empty constructor
      */
     public BizzySalesOrder() {
-        bpHoldingNo = -1;
+        bpHoldingCode = -1;
     }
 
     /**
@@ -69,8 +71,8 @@ public class BizzySalesOrder implements Serializable {
         this.soff_code = bizzySo.soff_code;
         this.description = bizzySo.description;
         this.dateOrdered = bizzySo.dateOrdered;
-        this.bpHoldingNo = bizzySo.bpHoldingNo;
-        this.bpLocationName = bizzySo.bpLocationName;
+        this.bpHoldingCode = bizzySo.bpHoldingCode;
+        this.bpLocationCode = bizzySo.bpLocationCode;
         this.orderSource = bizzySo.orderSource;
         this.orderLines = bizzySo.orderLines;
     }
