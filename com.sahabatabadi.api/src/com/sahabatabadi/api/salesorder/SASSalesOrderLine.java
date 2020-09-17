@@ -10,13 +10,15 @@ import java.util.Map;
 
 import com.sahabatabadi.api.DocHeader;
 import com.sahabatabadi.api.DocLine;
+import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
 
 /**
  * Class to represent required information to inject a sales order line into SAS
  * iDempiere. Has methods to convert external SO line classes to SAS SO line.
  * Used in {@link SASSalesOrder}
  * 
- * <p> Avoid editing fields manually; rather, use the constructors to convert
+ * <p>
+ * Avoid editing fields manually; rather, use the constructors to convert
  * external SO line into SAS SO line.
  * 
  * @author Nicholas Alexander Limit
@@ -30,11 +32,10 @@ public class SASSalesOrderLine implements DocLine {
 
     /**
      * Line number of the SO. Typically incremented by
-     * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between
-     * different SO lines.
+     * {@link SASSalesOrder#LINE_NUMBER_INCREMENT} between different SO lines.
      */
     public int lineNo;
-    
+
     /**
      * Product ID of the product being ordered. Has to match the entries in the
      * {@code value} field in iDempiere's {@code M_Product} table.
@@ -126,8 +127,11 @@ public class SASSalesOrderLine implements DocLine {
      * 
      * @param orderLine Bizzy SO line object to convert to SAS SO line object.
      * @param header    SAS SO header object associated with this SO line.
+     * @throws MasterDataNotFoundException thrown if the specified master data in
+     *                                     the orderLine argument is not found i.e.
+     *                                     constructor encountered another exception
      */
-    public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) {
+    public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) throws MasterDataNotFoundException {
         try {
             /* parsing values from Bizzy SO Line */
             this.header = header;
@@ -142,7 +146,7 @@ public class SASSalesOrderLine implements DocLine {
             e.printStackTrace();
             System.err.println("Failed to create SAS SO Line object. Bizzy SO Line object: " + orderLine.toString());
             System.err.println("Associated Bizzy SO header object: " + header.toString());
-            throw e;
+            throw new MasterDataNotFoundException(e);
         }
     }
 
@@ -160,10 +164,10 @@ public class SASSalesOrderLine implements DocLine {
     public String getDocumentNo() {
         return this.documentNo;
     }
-    
+
     @Override
     public DocHeader getHeader() {
-    	return this.header;
+        return this.header;
     }
 
     @Override

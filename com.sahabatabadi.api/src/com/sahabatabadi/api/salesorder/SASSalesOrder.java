@@ -13,12 +13,14 @@ import org.compiere.util.DB;
 
 import com.sahabatabadi.api.DocHeader;
 import com.sahabatabadi.api.DocLine;
+import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
 
 /**
  * Class to represent required information to inject a sales order header into
  * SAS iDempiere. Has methods to convert external SO classes to SAS SO.
  * 
- * <p> Avoid editing fields manually; rather, use the constructors to convert
+ * <p>
+ * Avoid editing fields manually; rather, use the constructors to convert
  * external SO into SAS SO.
  * 
  * @author Nicholas Alexander Limit
@@ -26,7 +28,7 @@ import com.sahabatabadi.api.DocLine;
  */
 public class SASSalesOrder implements DocHeader {
     /**
-     * Increment between line numbers in an unprocessed SO. 
+     * Increment between line numbers in an unprocessed SO.
      */
     public static final int LINE_NUMBER_INCREMENT = 10;
 
@@ -44,7 +46,7 @@ public class SASSalesOrder implements DocHeader {
 
     /**
      * Document number of the SO. Has to exactly match predefined format in
-     * iDempiere. 
+     * iDempiere.
      * 
      * @see org.compiere.util.DB#getDocumentNo
      */
@@ -225,10 +227,13 @@ public class SASSalesOrder implements DocHeader {
      * principal and discount prior to being passed in to this constructor.
      * 
      * @param bizzySo Bizzy SO object to convert to SAS SO object.
+     * @throws MasterDataNotFoundException thrown if the specified master data in
+     *                                     the bizzySo argument is not found i.e.
+     *                                     constructor encountered another exception
      * 
      * @see org.compiere.model.PO#saveNew()
      */
-    public SASSalesOrder(BizzySalesOrder bizzySo) {
+    public SASSalesOrder(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
         try {
             this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
             this.description = bizzySo.description;
@@ -249,12 +254,13 @@ public class SASSalesOrder implements DocHeader {
             this.orgTrx = SalesOrderUtils.getOrgTrx(this.bpCode, principal);
 
             // org.compiere.model.PO#saveNew()
-            PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org), SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
+            PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org),
+                    SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
             this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Failed to create SAS SO object. Bizzy SO object: " + bizzySo.toString());
-            throw e;
+            throw new MasterDataNotFoundException(e);
         }
 
         this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];

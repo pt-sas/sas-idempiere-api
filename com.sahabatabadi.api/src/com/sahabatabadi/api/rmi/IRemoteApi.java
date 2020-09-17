@@ -9,5 +9,5 @@ public interface IRemoteApi extends Remote {
     public static final String BINDING_NAME = "SASiDempiereRemoteApi";
 	public static final int RMI_REGISTRY_PORT = 11579;
     
-	public String injectSo(BizzySalesOrder bizzySo) throws RemoteException;  
+	public String injectSo(BizzySalesOrder bizzySo) throws RemoteException, MasterDataNotFoundException;  
 }

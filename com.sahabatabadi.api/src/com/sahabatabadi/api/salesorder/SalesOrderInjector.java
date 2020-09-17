@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 
 import com.sahabatabadi.api.DocumentInjector;
 import com.sahabatabadi.api.ThreadPoolManager;
+import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
 
 /**
  * Class to inject {@link BizzySalesOrder} into iDempiere. This class receives a
@@ -31,14 +32,17 @@ public class SalesOrderInjector {
      * Menu ID for Sales Order menu in iDempiere
      */
     public static final int SALES_ORDER_MENU_ID = 129;
-    
+
     /**
      * Injects the specified Bizzy Sales Order into iDempiere
      * 
      * @param bizzySo Bizzy Sales Order object to be injected
      * @return Document numbers of the documents successfully inserted
+     * @throws MasterDataNotFoundException thrown if any of the master data in the
+     *                                     SO header / line is not found, i.e. the
+     *                                     SO header / line creation failed.
      */
-    public String injectSalesOrder(BizzySalesOrder bizzySo) {
+    public String injectSalesOrder(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productCode);
             soLine.principalId = principal;
@@ -139,7 +143,7 @@ public class SalesOrderInjector {
                 toReturn.add(groupedLines.toArray(new BizzySalesOrderLine[groupedLines.size()]));
             }
         }
-        
+
         return toReturn;
-    }    
+    }
 }
