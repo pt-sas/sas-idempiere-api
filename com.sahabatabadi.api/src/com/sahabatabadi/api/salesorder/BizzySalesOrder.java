@@ -1,6 +1,8 @@
 package com.sahabatabadi.api.salesorder;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Date;
 
 /**
@@ -69,5 +71,53 @@ public class BizzySalesOrder implements Serializable {
         this.bpLocationCode = bizzySo.bpLocationCode;
         this.orderSource = bizzySo.orderSource;
         this.orderLines = bizzySo.orderLines;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Field soField : this.getClass().getDeclaredFields()) {
+            if (!Modifier.isPublic(soField.getModifiers())) {
+                continue; // non-public fields
+            }
+
+            Object value = null;
+            try {
+                value = soField.get(this);
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                return this.toStringNoReflection();
+            }
+
+            if (value == null) {
+                continue;
+            }
+
+            sb.append(soField.getName() + ": " + value + "\n\n"); // TODO check what happens with array
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Helper method to compute toString without using Reflection as a failsafe.
+     * 
+     * @return contents of the SO line
+     */
+    private String toStringNoReflection() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("soff_code: " + this.soff_code + "\n\n");
+        sb.append("description: " + this.description + "\n\n");
+        sb.append("dateOrdered: " + this.dateOrdered + "\n\n");
+        sb.append("bpHoldingCode: " + this.bpHoldingCode + "\n\n");
+        sb.append("bpLocationCode: " + this.bpLocationCode + "\n\n");
+        sb.append("orderSource: " + this.orderSource + "\n\n");
+
+        sb.append("orderLine: [");
+        for (BizzySalesOrderLine line : this.orderLines) {
+            sb.append(line.toString());
+        }
+        sb.append("]");
+
+        return sb.toString();
     }
 }

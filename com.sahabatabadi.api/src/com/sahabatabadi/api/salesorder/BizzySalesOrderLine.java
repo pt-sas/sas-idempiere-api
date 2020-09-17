@@ -1,6 +1,8 @@
 package com.sahabatabadi.api.salesorder;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * POJO class to represent Sales Order Line data from Bizzy. Used in
@@ -54,5 +56,42 @@ public class BizzySalesOrderLine implements Serializable {
         this.quantity = bizzySoLine.quantity;
         this.principalId = bizzySoLine.principalId;
         this.discount = bizzySoLine.discount;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Field soField : this.getClass().getDeclaredFields()) {
+            if (!Modifier.isPublic(soField.getModifiers())) {
+                continue; // non-public fields
+            }
+
+            Object value = null;
+            try {
+                value = soField.get(this);
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                return this.toStringNoReflection();
+            }
+
+            if (value == null) {
+                continue;
+            }
+
+            sb.append(soField.getName() + ": " + value + "\n\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Helper method to compute toString without using Reflection as a failsafe.
+     * 
+     * @return contents of the SO line
+     */
+    private String toStringNoReflection() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("productCode: " + this.productCode + "\n\n");
+        sb.append("quantity: " + this.quantity + "\n\n");
+        return sb.toString();
     }
 }
