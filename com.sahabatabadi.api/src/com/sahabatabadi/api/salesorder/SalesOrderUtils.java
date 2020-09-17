@@ -312,6 +312,103 @@ public class SalesOrderUtils {
     }
 
     /**
+     * Queries the database to check whether the given BP code exists.
+     * 
+     * @param bpHoldingCode Five-digit BP number. For example, for "PIONEER ELEKTRIC",
+     *                    the value is {@code "03806"}.
+     * @return true if the given bpHoldingId exists, false otherwise
+     */
+    public static boolean checkBpCode(String bpHoldingCode) {
+        String orgTrxQuery = new StringBuilder()
+            .append("SELECT C_BPartner_ID\n") 
+            .append("FROM C_BPartner\n") 
+            .append("WHERE value = ? ;") 
+            .toString();
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(orgTrxQuery, null);
+            pstmt.setString(1, bpHoldingCode);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                return true;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, orgTrxQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Queries the database to check whether the given BP Location ID exists.
+     * 
+     * @param bpLocationCode C_BParner_Location_ID in the C_BPartner_Location table.
+     * @return true if the given bpHoldingId exists, false otherwise
+     */
+    public static boolean checkBpLocationCode(String bpLocationCode) {
+        String orgTrxQuery = new StringBuilder()
+            .append("SELECT C_BPartner_Location_ID\n") 
+            .append("FROM C_BPartner_Location\n") 
+            .append("WHERE C_BPartner_Location_ID = ? ;") 
+            .toString();
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(orgTrxQuery, null);
+            pstmt.setInt(1, Integer.parseInt(bpLocationCode));
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                return true;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, orgTrxQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Queries the database to check whether the given product code exists.
+     * 
+     * @param productCode M_Product_ID in the M_Product table.
+     * @return true if the given bpHoldingId exists, false otherwise
+     */
+    public static boolean checkProductCode(String productCode) {
+        String orgTrxQuery = new StringBuilder()
+            .append("SELECT M_Product_ID\n")
+            .append("FROM M_Product\n")
+            .append("WHERE value = ? ;")
+            .toString();
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = DB.prepareStatement(orgTrxQuery, null);
+            pstmt.setString(1, productCode);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                return true;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, orgTrxQuery, e);
+        } finally {
+            DB.close(rs, pstmt);
+            rs = null;
+            pstmt = null;
+        }
+
+        return false;
+    }
+
+    /**
      * Helper method to return a Sales Order PO object to be used to generate a new
      * document number.
      * 
