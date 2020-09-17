@@ -1,8 +1,8 @@
 package com.sahabatabadi.api.rmi;
 
 /**
- * Wrapper exception for Exception and any of its inherited classes to make it
- * a checked exception.
+ * Wrapper exception for Exception and any of its inherited classes to make it a
+ * checked exception.
  */
 public class MasterDataNotFoundException extends Exception {
     /**
@@ -11,24 +11,24 @@ public class MasterDataNotFoundException extends Exception {
     private static final long serialVersionUID = 461853077216045252L;
 
     /**
-     * Original Exception that is wrapped by this exception class
-     */
-    private Throwable cause;
-
-    /**
-     * Constructs a new exception with the specified detail message and cause.
+     * Constructs a wrapper exception with the specified detail message and cause.
      * 
-     * @param cause      the cause, which is saved for later retrieval by the
-     *                   {@link #getCause()} method.
+     * @param message the detail message (which is saved for later retrieval by the
+     *                {@link #getMessage()} method).
      */
-    public MasterDataNotFoundException(Throwable cause) {
-        this.cause = cause;
+    public MasterDataNotFoundException(String message) {
+        super(message);
     }
 
     /**
-     * Returns the cause of this throwable.
+     * Constructs a wrapper exception with the specified detail message and cause.
+     * 
+     * @param message the detail message (which is saved for later retrieval by the
+     *                {@link #getMessage()} method).
+     * @param cause   the cause (which is saved for later retrieval by the
+     *                {@link #getCause()} method).
      */
-    public Throwable getCause() {
-        return cause;
+    public MasterDataNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
