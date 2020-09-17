@@ -670,7 +670,7 @@ public class DocumentInjector {
                 ApiInjectable[] lines = header.getLines();
                 GridTab childCache = null;
                 for (ApiInjectable line : lines) {
-                    if (childCache == null || !line.getTableName().equals(childCache)) {
+                    if (childCache == null || !line.getTableName().equals(childCache.getTableName())) {
                         for (GridTab child : childs) {
                             if (line.getTableName().equals(child.getTableName())) {
                                 childCache = child;
