@@ -43,6 +43,11 @@ public class SalesOrderInjector {
      *                                     SO header / line creation failed.
      */
     public String injectSalesOrder(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
+        SASSalesOrder.validateBizzySoData(bizzySo);
+        for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
+            SASSalesOrderLine.validateBizzySoLineData(soLine);
+        }
+
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productCode);
             soLine.principalId = principal;
@@ -56,7 +61,7 @@ public class SalesOrderInjector {
             BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
             splitBizzySo.orderLines = soLineGroup;
 
-            SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo);
+            SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo, true);
             SalesOrderInjectorThread task = new SalesOrderInjectorThread(sasSo);
             Future<String> res = ThreadPoolManager.submitTask(task);
             pendingResults.add(res);

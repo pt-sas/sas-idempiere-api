@@ -88,7 +88,7 @@ public class SASSalesOrderLine implements DocLine {
      */
     private SASSalesOrder header;
 
-    protected CLogger log = CLogger.getCLogger(getClass());
+    protected static CLogger log = CLogger.getCLogger(SASSalesOrderLine.class);
 
     /**
      * Mapping between this class's field / instance variable names and iDempiere
@@ -137,9 +137,25 @@ public class SASSalesOrderLine implements DocLine {
      *                                     constructor encountered another exception
      */
     public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) throws MasterDataNotFoundException {
+        this(orderLine, header, false);
+    }
+
+    /**
+     * Validation constructor.
+     * 
+     * @param orderLine      Bizzy SO line object to convert to SAS SO line object.
+     * @param header         SAS SO header object associated with this SO line.
+     * @param skipValidation If true, skip validation.
+     * @throws MasterDataNotFoundException thrown if the specified master data in
+     *                                     the orderLine argument is not found i.e.
+     *                                     constructor encountered another exception
+     */
+    public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header, boolean skipValidation) throws MasterDataNotFoundException {
         try {
-        	validateBizzySoLineData(orderLine);
-        	
+            if (!skipValidation) {
+                validateBizzySoLineData(orderLine);
+            }
+
             /* parsing values from Bizzy SO Line */
             this.header = header;
             this.productId = orderLine.productCode;
@@ -150,11 +166,7 @@ public class SASSalesOrderLine implements DocLine {
             this.documentNo = this.header.documentNo;
             this.datePromised = this.header.datePromised;
         } catch (MasterDataNotFoundException e) {
-        	String errMsg = String.format("Master data error in SAS SO line: %s\nBizzy SO line content: %s\nAssociated Bizzy SO header content: %s\n",
-                    e.getMessage(), orderLine.toString(), this.header.toString());
-            if (log.isLoggable(Level.WARNING))
-                log.warning(errMsg);
-            throw new MasterDataNotFoundException(errMsg);
+            throw e;
         } catch (Exception e) {
             // TODO insert general exception to API error log?
         }
@@ -168,14 +180,23 @@ public class SASSalesOrderLine implements DocLine {
      *                                     the bizzySo argument is not found i.e.
      *                                     constructor encountered another exception
      */
-    private void validateBizzySoLineData(BizzySalesOrderLine bizzySoLine) throws MasterDataNotFoundException {
-        if (bizzySoLine.productCode == null)
-            throw new MasterDataNotFoundException("Product Code is empty!");
-        if (!SalesOrderUtils.checkProductCode(bizzySoLine.productCode))
-            throw new MasterDataNotFoundException("Incorrect Product Code, Product be found!");
+    public static void validateBizzySoLineData(BizzySalesOrderLine bizzySoLine) throws MasterDataNotFoundException {
+        try {
+            if (bizzySoLine.productCode == null)
+                throw new MasterDataNotFoundException("Product Code is empty!");
+            if (!SalesOrderUtils.checkProductCode(bizzySoLine.productCode))
+                throw new MasterDataNotFoundException("Incorrect Product Code, Product cannot be found!");
 
-        if (bizzySoLine.quantity <= 0) 
-        	throw new MasterDataNotFoundException("Product quantity must be a positive value!");
+            if (bizzySoLine.quantity <= 0) 
+                throw new MasterDataNotFoundException("Product quantity must be a positive value!");
+        } catch (MasterDataNotFoundException e) {
+            String errMsg = String.format(
+                    "Master data error in SAS SO line: %s\nBizzy SO line content: \n%s\n",
+                    e.getMessage(), bizzySoLine.toString());
+            if (log.isLoggable(Level.WARNING))
+                log.warning(errMsg);
+            throw new MasterDataNotFoundException(errMsg);
+        }
     }
 
     @Override

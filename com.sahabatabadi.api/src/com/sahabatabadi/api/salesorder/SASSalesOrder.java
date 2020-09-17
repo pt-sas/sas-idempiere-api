@@ -155,7 +155,7 @@ public class SASSalesOrder implements DocHeader {
      */
     public SASSalesOrderLine[] orderLines;
 
-    protected CLogger log = CLogger.getCLogger(getClass());
+    protected static CLogger log = CLogger.getCLogger(SASSalesOrder.class);
 
     /**
      * Last / largest line number associated with this header.
@@ -220,12 +220,17 @@ public class SASSalesOrder implements DocHeader {
     }
 
     /**
-     * Default constructor.
+     * Default constructor, always validate.
      * 
+     * <p>
      * This class requires the specified bizzySo to have at least one SO line, and
      * also requires all SO lines to have identical product principal and product
      * discount. In other words, the Bizzy SO headers have to be grouped by
      * principal and discount prior to being passed in to this constructor.
+     * 
+     * <p>
+     * Furthermore, this constructor always validates whether the bizzy SO content
+     * conforms to iDempiere requirements.
      * 
      * @param bizzySo Bizzy SO object to convert to SAS SO object.
      * @throws MasterDataNotFoundException thrown if the specified master data in
@@ -235,9 +240,36 @@ public class SASSalesOrder implements DocHeader {
      * @see org.compiere.model.PO#saveNew()
      */
     public SASSalesOrder(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
-        try {
-            validateBizzySoData(bizzySo);
+        this(bizzySo, false);
+    }
 
+    /**
+     * Validation constructor.
+     * 
+     * <p>
+     * This class requires the specified bizzySo to have at least one SO line, and
+     * also requires all SO lines to have identical product principal and product
+     * discount. In other words, the Bizzy SO headers have to be grouped by
+     * principal and discount prior to being passed in to this constructor.
+     * 
+     * <p>
+     * Furthermore, this constructor validates whether the bizzy SO content conforms
+     * to iDempiere requirements if the skipValidation argument is false.
+     * 
+     * @param bizzySo        Bizzy SO object to convert to SAS SO object.
+     * @param skipValidation If true, skip validation.
+     * @throws MasterDataNotFoundException thrown if the specified master data in
+     *                                     the bizzySo argument is not found i.e.
+     *                                     constructor encountered another exception
+     * 
+     * @see org.compiere.model.PO#saveNew()
+     */
+    public SASSalesOrder(BizzySalesOrder bizzySo, boolean skipValidation) throws MasterDataNotFoundException {
+        try {
+        	if (!skipValidation) {
+                validateBizzySoData(bizzySo);
+            }
+        	
             this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
 
             this.description = bizzySo.description;
@@ -265,19 +297,15 @@ public class SASSalesOrder implements DocHeader {
             PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org),
                     SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
             this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
+            
+            this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
+            for (int i = 0; i < orderLines.length; i++) {
+                this.orderLines[i] = new SASSalesOrderLine(bizzySo.orderLines[i], this, skipValidation);
+            }
         } catch (MasterDataNotFoundException e) {
-            String errMsg = String.format("Master data error in SAS SO header: %s\nBizzy SO header content: %s\n.",
-                    e.getMessage(), bizzySo.toString());
-            if (log.isLoggable(Level.WARNING))
-                log.warning(errMsg);
-            throw new MasterDataNotFoundException(errMsg);
+        	throw e;
         } catch (Exception e) {
             // TODO insert general exception to API error log?
-        }
-
-        this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
-        for (int i = 0; i < orderLines.length; i++) {
-            this.orderLines[i] = new SASSalesOrderLine(bizzySo.orderLines[i], this);
         }
     }
 
@@ -289,27 +317,36 @@ public class SASSalesOrder implements DocHeader {
      *                                     the bizzySo argument is not found i.e.
      *                                     constructor encountered another exception
      */
-    private void validateBizzySoData(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
-        if (SalesOrderUtils.orgMap.get(bizzySo.soff_code) == null)
-            throw new MasterDataNotFoundException("Incorrect SOFF Code, Org cannot be found! ", null);
+    public static void validateBizzySoData(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
+        try {
+            if (SalesOrderUtils.orgMap.get(bizzySo.soff_code) == null)
+                throw new MasterDataNotFoundException("Incorrect SOFF Code, Org cannot be found! ", null);
 
-        // description can be left empty, skip check
+            // description can be left empty, skip check
 
-        if (bizzySo.dateOrdered == null)
-            throw new MasterDataNotFoundException("Date Ordered is empty!");
+            if (bizzySo.dateOrdered == null)
+                throw new MasterDataNotFoundException("Date Ordered is empty!");
 
-        if (bizzySo.bpHoldingCode == null)
-            throw new MasterDataNotFoundException("BP Holding Code is empty!");
-        if (!SalesOrderUtils.checkBpCode(bizzySo.bpHoldingCode))
-            throw new MasterDataNotFoundException("Incorrect BP Holding Code, BP cannot be found!");
+            if (bizzySo.bpHoldingCode == null)
+                throw new MasterDataNotFoundException("BP Holding Code is empty!");
+            if (!SalesOrderUtils.checkBpCode(bizzySo.bpHoldingCode))
+                throw new MasterDataNotFoundException("Incorrect BP Holding Code, BP cannot be found!");
 
-        if (bizzySo.bpLocationCode == null)
-            throw new MasterDataNotFoundException("BP Holding Code is empty!");
-        if (!SalesOrderUtils.checkBpCode(bizzySo.bpLocationCode))
-            throw new MasterDataNotFoundException("Incorrect BP Location Code, BP Location cannot be found!");
+            if (bizzySo.bpLocationCode == null)
+                throw new MasterDataNotFoundException("BP Holding Code is empty!");
+            // if (!SalesOrderUtils.checkBpCode(bizzySo.bpLocationCode))
+            //     throw new MasterDataNotFoundException("Incorrect BP Location Code, BP Location cannot be found!");
+            // TODO later change bp location code to use C_BPartner_Location_ID
 
         if (bizzySo.orderSource != 'B' && bizzySo.orderSource != 'S')
             throw new MasterDataNotFoundException("Incorrect Order Source, has to either be 'B' or 'S'! ");
+        } catch (MasterDataNotFoundException e) {
+            String errMsg = String.format("Master data error in SAS SO header: %s\nBizzy SO header content: \n%s\n.",
+                    e.getMessage(), bizzySo.toString());
+            if (log.isLoggable(Level.WARNING))
+                log.warning(errMsg);
+            throw new MasterDataNotFoundException(errMsg);
+        }
     }
 
     /**
