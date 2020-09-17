@@ -1,6 +1,7 @@
 package com.sahabatabadi.api.salesorder;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Date;
@@ -92,7 +93,17 @@ public class BizzySalesOrder implements Serializable {
                 continue;
             }
 
-            sb.append(soField.getName() + ": " + value + "\n\n"); // TODO check what happens with array
+            if (soField.getType().isArray()) {
+                sb.append(soField.getName() + "\t: [");
+                int length = Array.getLength(value);
+                for (int i = 0; i < length; i++) {
+                    Object arrayElement = Array.get(value, i);
+                    sb.append("{\n").append(arrayElement.toString()).append("},\n");
+                }
+                sb.append("]");
+            } else {
+                sb.append(soField.getName() + "\t: " + value + "\n");
+            }
         }
 
         return sb.toString();
@@ -105,12 +116,12 @@ public class BizzySalesOrder implements Serializable {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("soff_code: " + this.soff_code + "\n\n");
-        sb.append("description: " + this.description + "\n\n");
-        sb.append("dateOrdered: " + this.dateOrdered + "\n\n");
-        sb.append("bpHoldingCode: " + this.bpHoldingCode + "\n\n");
-        sb.append("bpLocationCode: " + this.bpLocationCode + "\n\n");
-        sb.append("orderSource: " + this.orderSource + "\n\n");
+        sb.append("soff_code\t: " + this.soff_code + "\n");
+        sb.append("description\t: " + this.description + "\n");
+        sb.append("dateOrdered\t: " + this.dateOrdered + "\n");
+        sb.append("bpHoldingCode\t: " + this.bpHoldingCode + "\n");
+        sb.append("bpLocationCode\t: " + this.bpLocationCode + "\n");
+        sb.append("orderSource\t: " + this.orderSource + "\n");
 
         sb.append("orderLine: [");
         for (BizzySalesOrderLine line : this.orderLines) {

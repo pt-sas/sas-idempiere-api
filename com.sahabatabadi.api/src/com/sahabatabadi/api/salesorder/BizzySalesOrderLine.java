@@ -1,6 +1,7 @@
 package com.sahabatabadi.api.salesorder;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -77,7 +78,17 @@ public class BizzySalesOrderLine implements Serializable {
                 continue;
             }
 
-            sb.append(soField.getName() + ": " + value + "\n\n");
+            if (soField.getType().isArray()) {
+                sb.append(soField.getName() + "\t: [");
+                int length = Array.getLength(value);
+                for (int i = 0; i < length; i++) {
+                    Object arrayElement = Array.get(value, i);
+                    sb.append("{\n").append(arrayElement.toString()).append("},\n");
+                }
+                sb.append("]");
+            } else {
+                sb.append(soField.getName() + "\t: " + value + "\n");
+            }
         }
 
         return sb.toString();
@@ -90,8 +101,8 @@ public class BizzySalesOrderLine implements Serializable {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("productCode: " + this.productCode + "\n\n");
-        sb.append("quantity: " + this.quantity + "\n\n");
+        sb.append("productCode\t: " + this.productCode + "\n");
+        sb.append("quantity\t: " + this.quantity + "\n");
         return sb.toString();
     }
 }

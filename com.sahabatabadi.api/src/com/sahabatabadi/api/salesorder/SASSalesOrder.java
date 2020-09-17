@@ -1,5 +1,6 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -341,7 +342,7 @@ public class SASSalesOrder implements DocHeader {
         if (bizzySo.orderSource != 'B' && bizzySo.orderSource != 'S')
             throw new MasterDataNotFoundException("Incorrect Order Source, has to either be 'B' or 'S'! ");
         } catch (MasterDataNotFoundException e) {
-            String errMsg = String.format("Master data error in SAS SO header: %s\nBizzy SO header content: \n%s\n.",
+            String errMsg = String.format("Master data error in SAS SO header: %s\nBizzy SO header content: \n%s.",
                     e.getMessage(), bizzySo.toString());
             if (log.isLoggable(Level.WARNING))
                 log.warning(errMsg);
@@ -404,7 +405,17 @@ public class SASSalesOrder implements DocHeader {
                 continue;
             }
 
-            sb.append(columnName + ": " + value + "\n\n");
+            if (soField.getType().isArray()) {
+                sb.append(soField.getName() + "\t: [");
+                int length = Array.getLength(value);
+                for (int i = 0; i < length; i++) {
+                    Object arrayElement = Array.get(value, i);
+                    sb.append("{\n").append(arrayElement.toString()).append("},\n");
+                }
+                sb.append("]");
+            } else {
+                sb.append(soField.getName() + "\t: " + value + "\n");
+            }
         }
 
         return sb.toString();
@@ -417,18 +428,18 @@ public class SASSalesOrder implements DocHeader {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append(fieldColumnMap.get("org") + this.org + "\n\n");
-        sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n\n");
-        sb.append(fieldColumnMap.get("description") + this.description + "\n\n");
-        sb.append(fieldColumnMap.get("docType") + this.docType + "\n\n");
-        sb.append(fieldColumnMap.get("dateOrdered") + this.dateOrdered + "\n\n");
-        sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n\n");
-        sb.append(fieldColumnMap.get("bpCode") + this.bpCode + "\n\n");
-        sb.append(fieldColumnMap.get("invoiceBpCode") + this.invoiceBpCode + "\n\n");
-        sb.append(fieldColumnMap.get("bpLocation") + this.bpLocation + "\n\n");
-        sb.append(fieldColumnMap.get("invoiceBpLocation") + this.invoiceBpLocation + "\n\n");
-        sb.append(fieldColumnMap.get("warehouse") + this.warehouse + "\n\n");
-        sb.append(fieldColumnMap.get("orgTrx") + this.orgTrx + "\n\n");
+        sb.append(fieldColumnMap.get("org") + this.org + "\n");
+        sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n");
+        sb.append(fieldColumnMap.get("description") + this.description + "\n");
+        sb.append(fieldColumnMap.get("docType") + this.docType + "\n");
+        sb.append(fieldColumnMap.get("dateOrdered") + this.dateOrdered + "\n");
+        sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n");
+        sb.append(fieldColumnMap.get("bpCode") + this.bpCode + "\n");
+        sb.append(fieldColumnMap.get("invoiceBpCode") + this.invoiceBpCode + "\n");
+        sb.append(fieldColumnMap.get("bpLocation") + this.bpLocation + "\n");
+        sb.append(fieldColumnMap.get("invoiceBpLocation") + this.invoiceBpLocation + "\n");
+        sb.append(fieldColumnMap.get("warehouse") + this.warehouse + "\n");
+        sb.append(fieldColumnMap.get("orgTrx") + this.orgTrx + "\n");
         return sb.toString();
     }
 }

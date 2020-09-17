@@ -1,5 +1,6 @@
 package com.sahabatabadi.api.salesorder;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
@@ -191,7 +192,7 @@ public class SASSalesOrderLine implements DocLine {
                 throw new MasterDataNotFoundException("Product quantity must be a positive value!");
         } catch (MasterDataNotFoundException e) {
             String errMsg = String.format(
-                    "Master data error in SAS SO line: %s\nBizzy SO line content: \n%s\n",
+                    "Master data error in SAS SO line: %s\nBizzy SO line content: \n%s",
                     e.getMessage(), bizzySoLine.toString());
             if (log.isLoggable(Level.WARNING))
                 log.warning(errMsg);
@@ -243,7 +244,17 @@ public class SASSalesOrderLine implements DocLine {
                 continue;
             }
 
-            sb.append(columnName + ": " + value + "\n\n");
+            if (soField.getType().isArray()) {
+                sb.append(soField.getName() + "\t: [");
+                int length = Array.getLength(value);
+                for (int i = 0; i < length; i++) {
+                    Object arrayElement = Array.get(value, i);
+                    sb.append("{\n").append(arrayElement.toString()).append("},\n");
+                }
+                sb.append("]");
+            } else {
+                sb.append(soField.getName() + "\t: " + value + "\n");
+            }
         }
 
         return sb.toString();
@@ -256,11 +267,11 @@ public class SASSalesOrderLine implements DocLine {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
-        sb.append(fieldColumnMap.get("lineNo") + this.lineNo + "\n\n");
-        sb.append(fieldColumnMap.get("productId") + this.productId + "\n\n");
-        sb.append(fieldColumnMap.get("quantity") + this.quantity + "\n\n");
-        sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n\n");
-        sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n\n");
+        sb.append(fieldColumnMap.get("lineNo") + this.lineNo + "\n");
+        sb.append(fieldColumnMap.get("productId") + this.productId + "\n");
+        sb.append(fieldColumnMap.get("quantity") + this.quantity + "\n");
+        sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n");
+        sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n");
         return sb.toString();
     }
 }
