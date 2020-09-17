@@ -128,15 +128,22 @@ public class SASSalesOrderLine implements DocLine {
      * @param header    SAS SO header object associated with this SO line.
      */
     public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) {
-        /* parsing values from Bizzy SO Line */
-        this.header = header;
-        this.productId = orderLine.productCode;
-        this.quantity = new BigDecimal(orderLine.quantity);
+        try {
+            /* parsing values from Bizzy SO Line */
+            this.header = header;
+            this.productId = orderLine.productCode;
+            this.quantity = new BigDecimal(orderLine.quantity);
 
-        /* calculating values */
-        this.lineNo = header.getNextLineNumber();
-        this.documentNo = this.header.documentNo;
-        this.datePromised = this.header.datePromised;
+            /* calculating values */
+            this.lineNo = header.getNextLineNumber();
+            this.documentNo = this.header.documentNo;
+            this.datePromised = this.header.datePromised;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to create SAS SO Line object. Bizzy SO Line object: " + orderLine.toString());
+            System.err.println("Associated Bizzy SO header object: " + header.toString());
+            throw e;
+        }
     }
 
     @Override

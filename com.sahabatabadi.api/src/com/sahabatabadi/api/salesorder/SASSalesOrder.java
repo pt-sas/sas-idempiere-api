@@ -229,27 +229,33 @@ public class SASSalesOrder implements DocHeader {
      * @see org.compiere.model.PO#saveNew()
      */
     public SASSalesOrder(BizzySalesOrder bizzySo) {
-        this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
-        this.description = bizzySo.description;
-        this.dateOrdered = bizzySo.dateOrdered;
-        this.datePromised = this.dateOrdered;
-        this.bpCode = bizzySo.bpHoldingCode;
-        this.invoiceBpCode = this.bpCode;
-        this.bpLocation = bizzySo.bpLocationCode;
-        this.invoiceBpLocation = this.bpLocation;
-        this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
+        try {
+            this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
+            this.description = bizzySo.description;
+            this.dateOrdered = bizzySo.dateOrdered;
+            this.datePromised = this.dateOrdered;
+            this.bpCode = bizzySo.bpHoldingCode;
+            this.invoiceBpCode = this.bpCode;
+            this.bpLocation = bizzySo.bpLocationCode;
+            this.invoiceBpLocation = this.bpLocation;
+            this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
 
-        StringBuilder sb = new StringBuilder("O");
-        sb.append(bizzySo.orderSource);
-        sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationCode) ? "T" : "N");
-        this.docType = SalesOrderUtils.docTypeMap.get(sb.toString());
+            StringBuilder sb = new StringBuilder("O");
+            sb.append(bizzySo.orderSource);
+            sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationCode) ? "T" : "N");
+            this.docType = SalesOrderUtils.docTypeMap.get(sb.toString());
 
-        String principal = bizzySo.orderLines[0].principalId;
-        this.orgTrx = SalesOrderUtils.getOrgTrx(this.bpCode, principal);
+            String principal = bizzySo.orderLines[0].principalId;
+            this.orgTrx = SalesOrderUtils.getOrgTrx(this.bpCode, principal);
 
-        // org.compiere.model.PO#saveNew()
-        PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org), SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
-        this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
+            // org.compiere.model.PO#saveNew()
+            PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org), SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
+            this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to create SAS SO object. Bizzy SO object: " + bizzySo.toString());
+            throw e;
+        }
 
         this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
