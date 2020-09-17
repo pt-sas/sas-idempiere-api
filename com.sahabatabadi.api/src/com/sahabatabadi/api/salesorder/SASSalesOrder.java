@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
@@ -235,14 +236,21 @@ public class SASSalesOrder implements DocHeader {
      */
     public SASSalesOrder(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
         try {
+            validateBizzySoData(bizzySo);
+
             this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
+
             this.description = bizzySo.description;
+
             this.dateOrdered = bizzySo.dateOrdered;
             this.datePromised = this.dateOrdered;
+
             this.bpCode = bizzySo.bpHoldingCode;
             this.invoiceBpCode = this.bpCode;
+
             this.bpLocation = bizzySo.bpLocationCode;
             this.invoiceBpLocation = this.bpLocation;
+
             this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
 
             StringBuilder sb = new StringBuilder("O");
@@ -257,16 +265,51 @@ public class SASSalesOrder implements DocHeader {
             PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org),
                     SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
             this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
+        } catch (MasterDataNotFoundException e) {
+            String errMsg = String.format("Master data error in SAS SO header: %s\nBizzy SO header content: %s\n.",
+                    e.getMessage(), bizzySo.toString());
+            if (log.isLoggable(Level.WARNING))
+                log.warning(errMsg);
+            throw new MasterDataNotFoundException(errMsg);
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Failed to create SAS SO object. Bizzy SO object: " + bizzySo.toString());
-            throw new MasterDataNotFoundException(e);
+            // TODO insert general exception to API error log?
         }
 
         this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
         for (int i = 0; i < orderLines.length; i++) {
             this.orderLines[i] = new SASSalesOrderLine(bizzySo.orderLines[i], this);
         }
+    }
+
+    /**
+     * Validates whether all fields inside the bizzy SO is properly filled.
+     * 
+     * @param bizzySo Bizzy SO object to convert to validate.
+     * @throws MasterDataNotFoundException thrown if the specified master data in
+     *                                     the bizzySo argument is not found i.e.
+     *                                     constructor encountered another exception
+     */
+    private void validateBizzySoData(BizzySalesOrder bizzySo) throws MasterDataNotFoundException {
+        if (SalesOrderUtils.orgMap.get(bizzySo.soff_code) == null)
+            throw new MasterDataNotFoundException("Incorrect SOFF Code, Org cannot be found! ", null);
+
+        // description can be left empty, skip check
+
+        if (bizzySo.dateOrdered == null)
+            throw new MasterDataNotFoundException("Date Ordered is empty!");
+
+        if (bizzySo.bpHoldingCode == null)
+            throw new MasterDataNotFoundException("BP Holding Code is empty!");
+        if (!SalesOrderUtils.checkBpCode(bizzySo.bpHoldingCode))
+            throw new MasterDataNotFoundException("Incorrect BP Holding Code, BP cannot be found!");
+
+        if (bizzySo.bpLocationCode == null)
+            throw new MasterDataNotFoundException("BP Holding Code is empty!");
+        if (!SalesOrderUtils.checkBpCode(bizzySo.bpLocationCode))
+            throw new MasterDataNotFoundException("Incorrect BP Location Code, BP Location cannot be found!");
+
+        if (bizzySo.orderSource != 'B' && bizzySo.orderSource != 'S')
+            throw new MasterDataNotFoundException("Incorrect Order Source, has to either be 'B' or 'S'! ");
     }
 
     /**

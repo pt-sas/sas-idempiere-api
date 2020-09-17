@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+
+import org.compiere.util.CLogger;
 
 import com.sahabatabadi.api.DocHeader;
 import com.sahabatabadi.api.DocLine;
@@ -85,6 +88,8 @@ public class SASSalesOrderLine implements DocLine {
      */
     private SASSalesOrder header;
 
+    protected CLogger log = CLogger.getCLogger(getClass());
+
     /**
      * Mapping between this class's field / instance variable names and iDempiere
      * column names. The column names follow iDempiere Template format
@@ -133,6 +138,8 @@ public class SASSalesOrderLine implements DocLine {
      */
     public SASSalesOrderLine(BizzySalesOrderLine orderLine, SASSalesOrder header) throws MasterDataNotFoundException {
         try {
+        	validateBizzySoLineData(orderLine);
+        	
             /* parsing values from Bizzy SO Line */
             this.header = header;
             this.productId = orderLine.productCode;
@@ -142,12 +149,33 @@ public class SASSalesOrderLine implements DocLine {
             this.lineNo = header.getNextLineNumber();
             this.documentNo = this.header.documentNo;
             this.datePromised = this.header.datePromised;
+        } catch (MasterDataNotFoundException e) {
+        	String errMsg = String.format("Master data error in SAS SO line: %s\nBizzy SO line content: %s\nAssociated Bizzy SO header content: %s\n",
+                    e.getMessage(), orderLine.toString(), this.header.toString());
+            if (log.isLoggable(Level.WARNING))
+                log.warning(errMsg);
+            throw new MasterDataNotFoundException(errMsg);
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Failed to create SAS SO Line object. Bizzy SO Line object: " + orderLine.toString());
-            System.err.println("Associated Bizzy SO header object: " + header.toString());
-            throw new MasterDataNotFoundException(e);
+            // TODO insert general exception to API error log?
         }
+    }
+    
+    /**
+     * Validates whether all fields inside the bizzy SO line is properly filled.
+     * 
+     * @param bizzySoLine Bizzy SO Line object to convert to validate.
+     * @throws MasterDataNotFoundException thrown if the specified master data in
+     *                                     the bizzySo argument is not found i.e.
+     *                                     constructor encountered another exception
+     */
+    private void validateBizzySoLineData(BizzySalesOrderLine bizzySoLine) throws MasterDataNotFoundException {
+        if (bizzySoLine.productCode == null)
+            throw new MasterDataNotFoundException("Product Code is empty!");
+        if (!SalesOrderUtils.checkProductCode(bizzySoLine.productCode))
+            throw new MasterDataNotFoundException("Incorrect Product Code, Product be found!");
+
+        if (bizzySoLine.quantity <= 0) 
+        	throw new MasterDataNotFoundException("Product quantity must be a positive value!");
     }
 
     @Override
