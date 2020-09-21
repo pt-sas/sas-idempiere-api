@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  * POJO class to represent Sales Order Header data from Bizzy.
@@ -29,7 +29,7 @@ public class BizzySalesOrder implements Serializable {
     /**
      * Date the sales order was created.
      */
-    public Date dateOrdered;
+    public Timestamp dateOrdered;
 
     /**
      * Five-digit business partner (BP) or customer number, as an int. For example,

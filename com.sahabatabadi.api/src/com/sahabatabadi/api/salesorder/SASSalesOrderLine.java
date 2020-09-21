@@ -4,8 +4,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -76,7 +76,7 @@ public class SASSalesOrderLine implements DocLine {
     /**
      * Has to exactly match {@link SASSalesOrder#datePromised} in the header.
      */
-    public Date datePromised;
+    public Timestamp datePromised;
 
     // private String attributeSetInstance;
     // private String resourceAssignment;

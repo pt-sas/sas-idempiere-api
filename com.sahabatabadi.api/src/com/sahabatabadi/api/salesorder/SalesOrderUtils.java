@@ -427,7 +427,7 @@ public class SalesOrderUtils {
      * @see org.compiere.model.GridTable#dataSavePO(int)
      * @see org.compiere.model.MTable#getPO(int, String)
      */
-    public static PO getMOrderPO(int orgId, int orgTrxId, Date dateOrdered) {
+    public static PO getMOrderPO(int orgId, int orgTrxId, Timestamp dateOrdered) {
         // org.compiere.model.GridTable#dataSavePO(int)
         int Record_ID = 0; // 0 represents new PO
         String trxName = null;
@@ -451,7 +451,7 @@ public class SalesOrderUtils {
 
         po.set_ValueNoCheck("AD_Org_ID", orgId);
         po.set_ValueNoCheck("AD_OrgTrx_ID", orgTrxId);
-        po.set_ValueNoCheck("DateOrdered", new Timestamp(dateOrdered.getTime()));
+        po.set_ValueNoCheck("DateOrdered", dateOrdered);
 
         return po;
     }

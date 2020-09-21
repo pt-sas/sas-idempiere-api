@@ -3,8 +3,8 @@ package com.sahabatabadi.api.salesorder;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -70,12 +70,12 @@ public class SASSalesOrder implements DocHeader {
     /**
      * Date this SO is created. Has to be in the format {@code "yyyy-MM-dd"}.
      */
-    public Date dateOrdered;
+    public Timestamp dateOrdered;
 
     /**
      * Has to exactly match {@link #dateOrdered}.
      */
-    public Date datePromised;
+    public Timestamp datePromised;
 
     /**
      * Five-digit BP code. Has to match entries in the {@code value} field in
