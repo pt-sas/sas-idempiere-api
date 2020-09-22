@@ -1,10 +1,11 @@
-package com.sahabatabadi.api.rmi; // change when deploying
-
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Date;
+import java.sql.Timestamp;
 
 import com.sahabatabadi.api.rmi.IRemoteApi;
+import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
 import com.sahabatabadi.api.salesorder.BizzySalesOrder;
 import com.sahabatabadi.api.salesorder.BizzySalesOrderLine;
 
@@ -19,10 +20,12 @@ public class Client {
             Registry registry = LocateRegistry.getRegistry(host, port);
             IRemoteApi stub = (IRemoteApi) registry.lookup(IRemoteApi.BINDING_NAME);
             String response = stub.injectSo(createTestBizzySo());
-            System.out.println("response: " + response);
-        } catch (Exception e) {
+            System.out.println("Remote response: " + response);
+        } catch (RemoteException | NotBoundException e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
+        } catch (MasterDataNotFoundException e) {
+            System.err.println("Master data exception caught: " + e.getMessage());
         }
     }
 
@@ -31,13 +34,13 @@ public class Client {
 
         bizzySo.soff_code = 'A';
         bizzySo.description = "Testing principal and discount retrieval from DB";
-        bizzySo.dateOrdered = new Date(System.currentTimeMillis());
+        bizzySo.dateOrdered = new Timestamp(System.currentTimeMillis());
         bizzySo.bpHoldingCode = "03806";
-        // bizzySo.bpLocationName = "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // non-tax
-        bizzySo.bpLocationCode = "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // tax
-        bizzySo.orderSource = 'B';
+        // bizzySo.bpLocationName = "2201478"; // "PIONEER ELECTRIC- Kenari Mas [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // non-tax
+        bizzySo.bpLocationCode = "2205193"; // "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // tax
+        bizzySo.orderSource = 'S';
 
-        bizzySo.orderLines = new BizzySalesOrderLine[1];
+        bizzySo.orderLines = new BizzySalesOrderLine[2];
 
         bizzySo.orderLines[0] = new BizzySalesOrderLine();
         bizzySo.orderLines[0].productCode = "AB0301485";
@@ -45,11 +48,11 @@ public class Client {
         // bizzySo.orderLines[0].principalId = "Philips";
         // bizzySo.orderLines[0].discount = "8";
         
-        // bizzySo.orderLines[1] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[1].productCode = "AB0301440";
-        // bizzySo.orderLines[1].quantity = 20;
-        // // bizzySo.orderLines[1].principalId = "Philips";
-        // // bizzySo.orderLines[1].discount = "8";
+        bizzySo.orderLines[1] = new BizzySalesOrderLine();
+        bizzySo.orderLines[1].productCode = "AB0301440";
+        bizzySo.orderLines[1].quantity = 20;
+        // bizzySo.orderLines[1].principalId = "Philips";
+        // bizzySo.orderLines[1].discount = "8";
         
         // bizzySo.orderLines[2] = new BizzySalesOrderLine();
         // bizzySo.orderLines[2].productCode = "AB0301430";
