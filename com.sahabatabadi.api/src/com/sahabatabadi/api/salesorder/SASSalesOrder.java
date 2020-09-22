@@ -94,14 +94,14 @@ public class SASSalesOrder implements DocHeader {
      * Full name of the BP location. Has to match entries in the {@code name} field
      * in iDempiere's {@code C_BPartner_Location} table.
      */
-    public String bpLocation;
+    public String bpLocationCode;
 
     /**
      * Full name of the BP location to be invoiced. Typically has the same value as
-     * {@link #bpLocation}. Has to match entries in the {@code name} field in
+     * {@link #bpLocationCode}. Has to match entries in the {@code name} field in
      * iDempiere's {@code C_BPartner_Location} table.
      */
-    public String invoiceBpLocation;
+    public String invoiceBpLocationCode;
 
     // private String bpContact;
     // private String invoiceBpContact;
@@ -181,8 +181,8 @@ public class SASSalesOrder implements DocHeader {
         tempFieldColumnMap.put("datePromised", "DatePromised");
         tempFieldColumnMap.put("bpCode", "C_BPartner_ID[Value]");
         tempFieldColumnMap.put("invoiceBpCode", "Bill_BPartner_ID[Value]");
-        tempFieldColumnMap.put("bpLocation", "C_BPartner_Location_ID[Name]");
-        tempFieldColumnMap.put("invoiceBpLocation", "Bill_Location_ID[Name]");
+        tempFieldColumnMap.put("bpLocationCode", "C_BPartner_Location_ID[ISDN]");
+        tempFieldColumnMap.put("invoiceBpLocationCode", "Bill_Location_ID[ISDN]");
         // tempFieldColumnMap.put("bpContact", "AD_User_ID[Name]");
         // tempFieldColumnMap.put("invoiceBpContact", "Bill_User_ID[Name]");
         // tempFieldColumnMap.put("deliveryRule", "DeliveryRule");
@@ -281,8 +281,8 @@ public class SASSalesOrder implements DocHeader {
             this.bpCode = bizzySo.bpHoldingCode;
             this.invoiceBpCode = this.bpCode;
 
-            this.bpLocation = bizzySo.bpLocationCode;
-            this.invoiceBpLocation = this.bpLocation;
+            this.bpLocationCode = bizzySo.bpLocationCode;
+            this.invoiceBpLocationCode = this.bpLocationCode;
 
             this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
 
@@ -306,6 +306,7 @@ public class SASSalesOrder implements DocHeader {
         } catch (MasterDataNotFoundException e) {
         	throw e;
         } catch (Exception e) {
+        	e.printStackTrace();
             // TODO insert general exception to API error log?
         }
     }
@@ -335,9 +336,8 @@ public class SASSalesOrder implements DocHeader {
 
             if (bizzySo.bpLocationCode == null)
                 throw new MasterDataNotFoundException("BP Holding Code is empty!");
-            // if (!SalesOrderUtils.checkBpCode(bizzySo.bpLocationCode))
-            //     throw new MasterDataNotFoundException("Incorrect BP Location Code, BP Location cannot be found!");
-            // TODO later change bp location code to use C_BPartner_Location_ID
+            if (!SalesOrderUtils.checkBpLocationCode(bizzySo.bpLocationCode))
+                throw new MasterDataNotFoundException("Incorrect BP Location Code, BP Location cannot be found!");
 
         if (bizzySo.orderSource != 'B' && bizzySo.orderSource != 'S')
             throw new MasterDataNotFoundException("Incorrect Order Source, has to either be 'B' or 'S'! ");
@@ -436,8 +436,8 @@ public class SASSalesOrder implements DocHeader {
         sb.append(fieldColumnMap.get("datePromised") + this.datePromised + "\n");
         sb.append(fieldColumnMap.get("bpCode") + this.bpCode + "\n");
         sb.append(fieldColumnMap.get("invoiceBpCode") + this.invoiceBpCode + "\n");
-        sb.append(fieldColumnMap.get("bpLocation") + this.bpLocation + "\n");
-        sb.append(fieldColumnMap.get("invoiceBpLocation") + this.invoiceBpLocation + "\n");
+        sb.append(fieldColumnMap.get("bpLocationCode") + this.bpLocationCode + "\n");
+        sb.append(fieldColumnMap.get("invoiceBpLocationCode") + this.invoiceBpLocationCode + "\n");
         sb.append(fieldColumnMap.get("warehouse") + this.warehouse + "\n");
         sb.append(fieldColumnMap.get("orgTrx") + this.orgTrx + "\n");
         return sb.toString();

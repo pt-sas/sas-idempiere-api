@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,26 +178,23 @@ public class SalesOrderUtils {
     /**
      * Queries the database the tax status of the specified BP location.
      * 
-     * @param bpLocation Exact name of the business partner's (BP) or customer's
-     *                   location. Value has to exactly match the name in
-     *                   iDempiere's {@code C_BPartner_Location} table. Example:
-     *                   {@code "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt.
-     *                   Dasar Blok C No. 3-5]"}
+     * @param bpLocationCode BP Location search key in the ISDN field in the
+     *                       C_BPartner_Location table.
      * @return True if the BP location is a tax location, false otherwise.
      */
-    public static boolean getBPLocationIsTax(String bpLocation) {
+    public static boolean getBPLocationIsTax(String bpLocationCode) {
         String retValue = null;
         String isTaxQuery = new StringBuilder()
             .append("SELECT istax\n") 
             .append("FROM C_BPartner_Location\n") 
-            .append("WHERE name LIKE ?;")
+            .append("WHERE ISDN = ?;")
             .toString();
 
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
             pstmt = DB.prepareStatement(isTaxQuery, null);
-            pstmt.setString(1, bpLocation);
+            pstmt.setString(1, bpLocationCode);
             rs = pstmt.executeQuery();
             if (rs.next())
                 retValue = rs.getString(1);
@@ -345,23 +341,25 @@ public class SalesOrderUtils {
     }
 
     /**
-     * Queries the database to check whether the given BP Location ID exists.
+     * Queries the database to check whether the given BP Location search key
+     * exists.
      * 
-     * @param bpLocationCode C_BParner_Location_ID in the C_BPartner_Location table.
-     * @return true if the given bpHoldingId exists, false otherwise
+     * @param bpLocationCode BP Location search key in the ISDN field in the
+     *                       C_BPartner_Location table.
+     * @return true if the given bpLocationCode exists, false otherwise
      */
     public static boolean checkBpLocationCode(String bpLocationCode) {
         String orgTrxQuery = new StringBuilder()
             .append("SELECT C_BPartner_Location_ID\n") 
             .append("FROM C_BPartner_Location\n") 
-            .append("WHERE C_BPartner_Location_ID = ? ;") 
+            .append("WHERE ISDN = ? ;") 
             .toString();
 
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
             pstmt = DB.prepareStatement(orgTrxQuery, null);
-            pstmt.setInt(1, Integer.parseInt(bpLocationCode));
+            pstmt.setString(1, bpLocationCode);
             rs = pstmt.executeQuery();
             if (rs.next())
                 return true;
