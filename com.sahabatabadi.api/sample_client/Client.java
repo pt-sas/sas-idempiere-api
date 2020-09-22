@@ -3,6 +3,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import com.sahabatabadi.api.rmi.IRemoteApi;
 import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
@@ -40,61 +41,72 @@ public class Client {
         bizzySo.bpLocationCode = "2205193"; // "PIONIR ELEKTRIK INDONESIA [Kenari Mas Jl. Kramat Raya Lt. Dasar Blok C No. 3-5]"; // tax
         bizzySo.orderSource = 'S';
 
-        bizzySo.orderLines = new BizzySalesOrderLine[2];
+        ArrayList<BizzySalesOrderLine> orderlines = new ArrayList<>();
 
-        bizzySo.orderLines[0] = new BizzySalesOrderLine();
-        bizzySo.orderLines[0].productCode = "AB0301485";
-        bizzySo.orderLines[0].quantity = 100;
-        // bizzySo.orderLines[0].principalId = "Philips";
-        // bizzySo.orderLines[0].discount = "8";
+        BizzySalesOrderLine bizzySo0 = new BizzySalesOrderLine();
+        orderlines.append(bizzySo0);
+        bizzySo0.productCode = "AB0301485";
+        bizzySo0.quantity = 100;
+        // bizzySo0.principalId = "Philips";
+        // bizzySo0.discount = "8";
         
-        bizzySo.orderLines[1] = new BizzySalesOrderLine();
-        bizzySo.orderLines[1].productCode = "AB0301440";
-        bizzySo.orderLines[1].quantity = 20;
-        // bizzySo.orderLines[1].principalId = "Philips";
-        // bizzySo.orderLines[1].discount = "8";
+        BizzySalesOrderLine bizzySo1 = new BizzySalesOrderLine();
+        orderlines.append(bizzySo1);
+        bizzySo1.productCode = "AB0301440";
+        bizzySo1.quantity = 20;
+        // bizzySo1.principalId = "Philips";
+        // bizzySo1.discount = "8";
         
-        // bizzySo.orderLines[2] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[2].productCode = "AB0301430";
-        // bizzySo.orderLines[2].quantity = 40;
-        // // bizzySo.orderLines[2].principalId = "Philips";
-        // // bizzySo.orderLines[2].discount = "8";
+        // BizzySalesOrderLine bizzySo2 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo2.productCode = "AB0301430";
+        // bizzySo2.quantity = 40;
+        // // bizzySo2.principalId = "Philips";
+        // // bizzySo2.discount = "8";
         
-        // bizzySo.orderLines[3] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[3].productCode = "BA0600010";
-        // bizzySo.orderLines[3].quantity = 20;
-        // // bizzySo.orderLines[3].principalId = "Panasonic";
-        // // bizzySo.orderLines[3].discount = "61.0";
+        // BizzySalesOrderLine bizzySo3 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo3.productCode = "BA0600010";
+        // bizzySo3.quantity = 20;
+        // // bizzySo3.principalId = "Panasonic";
+        // // bizzySo3.discount = "61.0";
 
-        // bizzySo.orderLines[4] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[4].productCode = "BA0100116";
-        // bizzySo.orderLines[4].quantity = 20;
-        // // bizzySo.orderLines[4].principalId = "Panasonic";
-        // // bizzySo.orderLines[4].discount = "51.0";
+        // BizzySalesOrderLine bizzySo4 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo4.productCode = "BA0100116";
+        // bizzySo4.quantity = 20;
+        // // bizzySo4.principalId = "Panasonic";
+        // // bizzySo4.discount = "51.0";
 
-        // bizzySo.orderLines[5] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[5].productCode = "FA0600085";
-        // bizzySo.orderLines[5].quantity = 20;
-        // // bizzySo.orderLines[5].principalId = "Schneider";
-        // // bizzySo.orderLines[5].discount = "36.3";
+        // BizzySalesOrderLine bizzySo5 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo5.productCode = "FA0600085";
+        // bizzySo5.quantity = 20;
+        // // bizzySo5.principalId = "Schneider";
+        // // bizzySo5.discount = "36.3";
     
-        // bizzySo.orderLines[6] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[6].productCode = "FA0100080";
-        // bizzySo.orderLines[6].quantity = 20;
-        // // bizzySo.orderLines[6].principalId = "Schneider";
-        // // bizzySo.orderLines[6].discount = "38";
+        // BizzySalesOrderLine bizzySo6 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo6.productCode = "FA0100080";
+        // bizzySo6.quantity = 20;
+        // // bizzySo6.principalId = "Schneider";
+        // // bizzySo6.discount = "38";
 
-        // bizzySo.orderLines[7] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[7].productCode = "GA0100000";
-        // bizzySo.orderLines[7].quantity = 20;
-        // // bizzySo.orderLines[7].principalId = "Supreme";
-        // // bizzySo.orderLines[7].discount = "42.01";
+        // BizzySalesOrderLine bizzySo7 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo7.productCode = "GA0100000";
+        // bizzySo7.quantity = 20;
+        // // bizzySo7.principalId = "Supreme";
+        // // bizzySo7.discount = "42.01";
 
-        // bizzySo.orderLines[8] = new BizzySalesOrderLine();
-        // bizzySo.orderLines[8].productCode = "GA0500010";
-        // bizzySo.orderLines[8].quantity = 20;
-        // // bizzySo.orderLines[8].principalId = "Supreme";
-        // // bizzySo.orderLines[8].discount = "31.14";
+        // BizzySalesOrderLine bizzySo8 = new BizzySalesOrderLine();
+        // orderlines.append(ne bizzy);
+        // bizzySo8.productCode = "GA0500010";
+        // bizzySo8.quantity = 20;
+        // // bizzySo8.principalId = "Supreme";
+        // // bizzySo8.discount = "31.14";
+
+        bizzySo.orderLines = orderlines.toArray(new BizzySalesOrderLine[orderlines.size()]);
         
         return bizzySo;
     }
