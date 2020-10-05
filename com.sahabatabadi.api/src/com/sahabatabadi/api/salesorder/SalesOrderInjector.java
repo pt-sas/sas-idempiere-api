@@ -24,14 +24,30 @@ import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
  */
 public class SalesOrderInjector {
     /**
-     * Window ID for Sales Order window in iDempiere
+     * Menu name for Sales Order menu in iDempiere
      */
-    public static final int SALES_ORDER_WINDOW_ID = 143;
+    public static final String SALES_ORDER_MENU_NAME = "Sales Order";
 
     /**
      * Menu ID for Sales Order menu in iDempiere
      */
-    public static final int SALES_ORDER_MENU_ID = 129;
+    public static final int SALES_ORDER_MENU_ID;
+
+    /**
+     * Window ID for Sales Order window in iDempiere
+     */
+    public static final int SALES_ORDER_WINDOW_ID;
+
+    static {
+        int[] menuWindowId = SalesOrderUtils.getMenuWindowId(SALES_ORDER_MENU_NAME);
+        if (menuWindowId[0] != -1 && menuWindowId[1] != -1) {
+            SALES_ORDER_MENU_ID = menuWindowId[0];
+            SALES_ORDER_WINDOW_ID = menuWindowId[1];
+        } else {
+            SALES_ORDER_MENU_ID = 129;
+            SALES_ORDER_WINDOW_ID = 143;
+        }
+    }
 
     /**
      * Injects the specified Bizzy Sales Order into iDempiere

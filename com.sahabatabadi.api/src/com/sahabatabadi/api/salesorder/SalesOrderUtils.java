@@ -127,6 +127,32 @@ public class SalesOrderUtils {
         docTypeIdMap = Collections.unmodifiableMap(tempDocTypeIdMap);
     }
 
+    public static int[] getMenuWindowId(String menuName) {
+        String query = new StringBuilder()
+        .append("SELECT AD_Menu_ID, AD_Window_ID\n")
+        .append("FROM AD_Menu\n")
+        .append("WHERE name = '").append(menuName).append("';\n")
+        .toString();
+
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int[] menuWindowId = new int[2];
+        try {
+            pstmt = DB.prepareStatement(query, null);
+            rs = pstmt.executeQuery();
+            if (rs.next())
+                menuWindowId[0] = rs.getInt(1);
+                menuWindowId[1] = rs.getInt(2);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, query, e);
+            menuWindowId[0] = -1;
+            menuWindowId[1] = -1;
+        } finally {
+            DB.close(rs, pstmt);
+        }
+        return menuWindowId;
+    }
+
     /**
      * Queries the database for an Org Trx given a BP number and principal.
      * 
