@@ -16,6 +16,11 @@ public class BizzySalesOrder implements Serializable {
     private static final long serialVersionUID = 20200915L;
 
     /**
+     * Bizzy-side SO number.
+     */
+    public String bizzyOrderNo;
+
+    /**
      * Represents the branch associated with the sales order. Value has to be either
      * {@code 'A'}, {@code 'B'}, {@code 'C'}, {@code 'D'}, or {@code 'M'}.
      */
@@ -65,6 +70,7 @@ public class BizzySalesOrder implements Serializable {
      * @param bizzySo Bizzy SO object to copy from
      */
     public BizzySalesOrder(BizzySalesOrder bizzySo) {
+        this.bizzyOrderNo = bizzySo.bizzyOrderNo;
         this.soff_code = bizzySo.soff_code;
         this.description = bizzySo.description;
         this.dateOrdered = bizzySo.dateOrdered;
@@ -116,6 +122,7 @@ public class BizzySalesOrder implements Serializable {
      */
     private String toStringNoReflection() {
         StringBuilder sb = new StringBuilder();
+        sb.append("bizzyOrderNo\t: " + this.bizzyOrderNo + "\n");
         sb.append("soff_code\t: " + this.soff_code + "\n");
         sb.append("description\t: " + this.description + "\n");
         sb.append("dateOrdered\t: " + this.dateOrdered + "\n");

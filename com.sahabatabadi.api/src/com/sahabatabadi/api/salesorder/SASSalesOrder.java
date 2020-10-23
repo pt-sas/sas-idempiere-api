@@ -54,7 +54,10 @@ public class SASSalesOrder implements DocHeader {
      */
     public String documentNo;
 
-    // private String poReference;
+    /**
+     * External SO number
+     */
+    public String poReference;
 
     /**
      * Raw description of the SO header. Can be left empty.
@@ -174,7 +177,7 @@ public class SASSalesOrder implements DocHeader {
         HashMap<String, String> tempFieldColumnMap = new HashMap<>();
         tempFieldColumnMap.put("org", "AD_Org_ID[Name]");
         tempFieldColumnMap.put("documentNo", "DocumentNo/K");
-        // tempFieldColumnMap.put("poReference", "POReference");
+        tempFieldColumnMap.put("poReference", "POReference");
         tempFieldColumnMap.put("description", "Description");
         tempFieldColumnMap.put("docType", "C_DocTypeTarget_ID[Name]");
         tempFieldColumnMap.put("dateOrdered", "DateOrdered");
@@ -267,12 +270,13 @@ public class SASSalesOrder implements DocHeader {
      */
     public SASSalesOrder(BizzySalesOrder bizzySo, boolean skipValidation) throws MasterDataNotFoundException {
         try {
-        	if (!skipValidation) {
+            if (!skipValidation) {
                 validateBizzySoData(bizzySo);
             }
-        	
+
             this.org = SalesOrderUtils.orgMap.get(bizzySo.soff_code);
 
+            this.poReference = bizzySo.bizzyOrderNo;
             this.description = bizzySo.description;
 
             this.dateOrdered = bizzySo.dateOrdered;
@@ -298,15 +302,15 @@ public class SASSalesOrder implements DocHeader {
             PO po = SalesOrderUtils.getMOrderPO(SalesOrderUtils.orgIdMap.get(this.org),
                     SalesOrderUtils.orgTrxIdMap.get(this.orgTrx), bizzySo.dateOrdered);
             this.documentNo = DB.getDocumentNo(SalesOrderUtils.docTypeIdMap.get(this.docType), null, false, po);
-            
+
             this.orderLines = new SASSalesOrderLine[bizzySo.orderLines.length];
             for (int i = 0; i < orderLines.length; i++) {
                 this.orderLines[i] = new SASSalesOrderLine(bizzySo.orderLines[i], this, skipValidation);
             }
         } catch (MasterDataNotFoundException e) {
-        	throw e;
+            throw e;
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
             // TODO insert general exception to API error log?
         }
     }
@@ -339,8 +343,8 @@ public class SASSalesOrder implements DocHeader {
             if (!SalesOrderUtils.checkBpLocationCode(bizzySo.bpLocationCode))
                 throw new MasterDataNotFoundException("Incorrect BP Location Code, BP Location cannot be found!");
 
-        if (bizzySo.orderSource != 'B' && bizzySo.orderSource != 'S')
-            throw new MasterDataNotFoundException("Incorrect Order Source, has to either be 'B' or 'S'! ");
+            if (bizzySo.orderSource != 'B' && bizzySo.orderSource != 'S')
+                throw new MasterDataNotFoundException("Incorrect Order Source, has to either be 'B' or 'S'! ");
         } catch (MasterDataNotFoundException e) {
             String errMsg = String.format("Master data error in SAS SO header: %s\nBizzy SO header content: \n%s.",
                     e.getMessage(), bizzySo.toString());
@@ -430,6 +434,7 @@ public class SASSalesOrder implements DocHeader {
         StringBuilder sb = new StringBuilder();
         sb.append(fieldColumnMap.get("org") + this.org + "\n");
         sb.append(fieldColumnMap.get("documentNo") + this.documentNo + "\n");
+        sb.append(fieldColumnMap.get("poReference") + this.poReference + "\n");
         sb.append(fieldColumnMap.get("description") + this.description + "\n");
         sb.append(fieldColumnMap.get("docType") + this.docType + "\n");
         sb.append(fieldColumnMap.get("dateOrdered") + this.dateOrdered + "\n");
