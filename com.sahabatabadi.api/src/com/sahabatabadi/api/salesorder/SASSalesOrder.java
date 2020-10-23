@@ -291,7 +291,7 @@ public class SASSalesOrder implements DocHeader {
             sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationCode) ? "T" : "N");
             this.docType = SalesOrderUtils.docTypeMap.get(sb.toString());
 
-            String principal = bizzySo.orderLines[0].principalId;
+            String principal = bizzySo.orderLines[0].principal;
             this.orgTrx = SalesOrderUtils.getOrgTrx(this.bpCode, principal);
 
             // org.compiere.model.PO#saveNew()

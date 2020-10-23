@@ -16,8 +16,8 @@ public class BizzySalesOrderLine implements Serializable {
     private static final long serialVersionUID = 20200915L;
 
     /**
-     * Product code of the product being ordered. Has to match the entries in
-     * iDempiere's {@code M_Product} table. Example: {@code "AB0301485"}.
+     * Product code of the product being ordered. Has to match the entries in the
+     * {@code value} field in iDempiere's {@code M_Product} table.
      */
     public String productCode;
 
@@ -31,7 +31,7 @@ public class BizzySalesOrderLine implements Serializable {
      * filled, has to match the entries in iDempiere's {@code M_Product} table.
      * Example: {@code "Philips"}.
      */
-    public String principalId;
+    public String principal;
 
     /**
      * Discount amount in percent of the product being ordered. Can be left empty.
@@ -55,7 +55,7 @@ public class BizzySalesOrderLine implements Serializable {
     public BizzySalesOrderLine(BizzySalesOrderLine bizzySoLine) {
         this.productCode = bizzySoLine.productCode;
         this.quantity = bizzySoLine.quantity;
-        this.principalId = bizzySoLine.principalId;
+        this.principal = bizzySoLine.principal;
         this.discount = bizzySoLine.discount;
     }
 

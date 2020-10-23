@@ -66,7 +66,7 @@ public class SalesOrderInjector {
 
         for (BizzySalesOrderLine soLine : bizzySo.orderLines) {
             String principal = SalesOrderUtils.getProductPrincipal(soLine.productCode);
-            soLine.principalId = principal;
+            soLine.principal = principal;
             soLine.discount = SalesOrderUtils.getProductDiscount(soLine.productCode, bizzySo.bpHoldingCode, principal);
         }
 
@@ -136,7 +136,7 @@ public class SalesOrderInjector {
         HashMap<String, HashMap<Double, ArrayList<BizzySalesOrderLine>>> principalGrouping = new HashMap<>();
 
         for (int i = 0; i < bizzySoLines.length; i++) {
-            String principal = bizzySoLines[i].principalId;
+            String principal = bizzySoLines[i].principal;
             double discount = bizzySoLines[i].discount;
 
             if (!principalGrouping.containsKey(principal)) {

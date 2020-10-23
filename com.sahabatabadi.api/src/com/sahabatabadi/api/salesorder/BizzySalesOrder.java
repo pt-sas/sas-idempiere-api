@@ -32,14 +32,14 @@ public class BizzySalesOrder implements Serializable {
     public Timestamp dateOrdered;
 
     /**
-     * Five-digit business partner (BP) or customer number, as an int. For example,
-     * for BP "PIONEER ELEKTRIC" with BP number "03806", the value is {@code 3806}.
+     * SAS code for the Business Partner (BP) Holding. Has to match entries in
+     * the @{code value} field in iDempiere's {@code C_BPartner} table.
      */
     public String bpHoldingCode;
 
     /**
-     * ID of the business partner's (BP) or customer's location from iDempiere's
-     * {@code C_BPartner_Location} table.
+     * SAS code for the Business Partner (BP) Location. Has to match entries in
+     * the @{code ISDN} field in iDempiere's {@code C_BPartner_Location} table.
      */
     public String bpLocationCode;
 
