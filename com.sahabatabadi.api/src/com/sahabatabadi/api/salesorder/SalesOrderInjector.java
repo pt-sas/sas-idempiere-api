@@ -3,12 +3,8 @@ package com.sahabatabadi.api.salesorder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import com.sahabatabadi.api.DocumentInjector;
-import com.sahabatabadi.api.ThreadPoolManager;
 import com.sahabatabadi.api.rmi.MasterDataNotFoundException;
 
 /**
@@ -72,58 +68,15 @@ public class SalesOrderInjector {
 
         ArrayList<BizzySalesOrderLine[]> groupedSoLines = splitSoLines(bizzySo.orderLines);
 
-        ArrayList<Future<String>> pendingResults = new ArrayList<>();
         for (BizzySalesOrderLine[] soLineGroup : groupedSoLines) {
             BizzySalesOrder splitBizzySo = new BizzySalesOrder(bizzySo);
             splitBizzySo.orderLines = soLineGroup;
 
             SASSalesOrder sasSo = new SASSalesOrder(splitBizzySo, true);
-            SalesOrderInjectorThread task = new SalesOrderInjectorThread(sasSo);
-            Future<String> res = ThreadPoolManager.submitTask(task);
-            pendingResults.add(res);
+            DocumentInjector.injectDocument(SALES_ORDER_WINDOW_ID, SALES_ORDER_MENU_ID, sasSo);
         }
 
-        ArrayList<String> insertedDocNums = new ArrayList<>();
-        for (Future<String> result : pendingResults) {
-            try {
-                String docNum = result.get();
-                if (docNum != null) {
-                    insertedDocNums.add(docNum);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return insertedDocNums.toString();
-    }
-
-    /**
-     * Wrapper class for the injector thread
-     */
-    class SalesOrderInjectorThread implements Callable<String> {
-        /**
-         * SAS SO object to be inserted by this class
-         */
-        private SASSalesOrder sasSo;
-
-        /**
-         * Default constructor
-         * 
-         * @param sasSo SAS SO object to be inserted in {@link #call()}
-         */
-        public SalesOrderInjectorThread(SASSalesOrder sasSo) {
-            this.sasSo = sasSo;
-        }
-
-        /**
-         * @return document number of the injected, or null if inject failed
-         */
-        public String call() {
-            DocumentInjector inj = new DocumentInjector(SALES_ORDER_WINDOW_ID, SALES_ORDER_MENU_ID);
-            boolean injectSuccess = inj.injectDocument(sasSo);
-            return injectSuccess ? sasSo.documentNo : null;
-        }
+        return "Add request successfully received";
     }
 
     /**

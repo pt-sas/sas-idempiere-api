@@ -56,4 +56,13 @@ public class ThreadPoolManager {
     public static <T> Future<T> submitTask(Callable<T> task) {
         return executor.submit(task);
     }
+    
+    /**
+     * Submits a task without returning any value.
+     * 
+     * @param task task to be run in a worker thread
+     */
+    public static void submitTask(Runnable task) {
+    	executor.submit(task);
+    }
 }
