@@ -254,8 +254,7 @@ public class DocumentInjectorThread implements Runnable {
      * 
      * @return next available unique window number
      */
-    private static int getNextWindowNo() {
-        // TODO has to be synchronized in multithreading
+    private static synchronized int getNextWindowNo() {
         DocumentInjectorThread.lastReturnedWindowNo += 1;
         return DocumentInjectorThread.lastReturnedWindowNo;
     }
