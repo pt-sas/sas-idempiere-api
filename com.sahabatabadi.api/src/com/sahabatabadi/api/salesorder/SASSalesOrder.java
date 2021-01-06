@@ -131,7 +131,12 @@ public class SASSalesOrder implements DocHeader {
     // private boolean chargeAmount;
     // private String paymentTerm;
     // private String promotionCode;
-    // private String project;
+    
+    /**
+     * Used to denote whether order source is BFF or Tokosmart.
+     */
+    private String project;
+    
     // private String campaign;
 
     /**
@@ -205,7 +210,7 @@ public class SASSalesOrder implements DocHeader {
         // tempFieldColumnMap.put("chargeAmount", "ChargeAmt");
         // tempFieldColumnMap.put("paymentTerm", "C_PaymentTerm_ID[Value]");
         // tempFieldColumnMap.put("promotionCode", "PromotionCode");
-        // tempFieldColumnMap.put("project", "C_Project_ID[Value]");
+        tempFieldColumnMap.put("project", "C_Project_ID[Value]");
         // tempFieldColumnMap.put("campaign", "C_Campaign_ID[Value]");
         tempFieldColumnMap.put("orgTrx", "AD_OrgTrx_ID[Name]");
         // tempFieldColumnMap.put("costCenter", "User1_ID[Value]");
@@ -244,10 +249,15 @@ public class SASSalesOrder implements DocHeader {
         this.invoiceBpLocation = this.bpLocation;
         this.warehouse = SalesOrderUtils.warehouseMap.get(bizzySo.soff_code);
 
-        StringBuilder sb = new StringBuilder("O");
-        sb.append(bizzySo.orderSource);
+        StringBuilder sb = new StringBuilder("PK");
         sb.append(SalesOrderUtils.getBPLocationIsTax(bizzySo.bpLocationName) ? "T" : "N");
         this.docType = SalesOrderUtils.docTypeMap.get(sb.toString());
+        
+        if (bizzySo.orderSource == 'B') {
+        	this.project = "BFF";
+        } else if (bizzySo.orderSource == 'S') {
+        	this.project = "Tokosmart";
+        }
 
         String principal = bizzySo.orderLines[0].principalId;
         this.orgTrx = SalesOrderUtils.getOrgTrx(this.bpCode, principal);
@@ -341,6 +351,7 @@ public class SASSalesOrder implements DocHeader {
         sb.append(fieldColumnMap.get("bpLocation") + this.bpLocation + "\n\n");
         sb.append(fieldColumnMap.get("invoiceBpLocation") + this.invoiceBpLocation + "\n\n");
         sb.append(fieldColumnMap.get("warehouse") + this.warehouse + "\n\n");
+        sb.append(fieldColumnMap.get("project") + this.project + "\n\n");
         sb.append(fieldColumnMap.get("orgTrx") + this.orgTrx + "\n\n");
         return sb.toString();
     }
